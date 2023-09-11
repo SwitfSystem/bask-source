@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+	<link rel="shortcut icon" href="/static/img/favicon.ico">
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+	<title>设备管理</title>
+</head>
+<body class="text-center">
+	<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+	
+	<div class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" style="width: 300px;" >
+          <input onkeydown="search(this)" type="search" class="form-control" aria-label="Search">
+          <input id="radio_1" class="radio" value="1" type="radio" name="type" checked>手机号 
+          <input id="radio_2" class="radio" value="2" type="radio" name="type">用户名 
+          <select id="search_selected" name="status">
+		      <option selected value="2">全部</option>
+		      <option value="0">在线</option>
+		      <option value="1">离线</option>
+          </select>
+    </div>
+	
+    <ul class="nav nav-tabs">
+	  <li class="nav-item">
+	    <a class="nav-link active driver" id="driver_list" aria-current="page" href="javascript:;">设备</a>
+	  </li>
+	  <li class="nav-item">
+	    <a class="nav-link driver" id="driver_set" href="javascript:;">设置</a>
+	  </li>
+	  <li class="nav-item">
+	    <a class="nav-link driver" id="driver_note" href="javascript:;">公告</a>
+	  </li>
+	</ul>
+	
+	<!-- 设备列表 -->
+	<div class="driver_list">
+		<table class="table table-hover">
+		  <thead>
+		    <tr>
+		    	<th scope="col">
+		    		<input onclick="driverCheckbox(this);" type="checkbox">
+		    	</th>
+		      <th scope="col">编号</th>
+		      <th scope="col">用户名</th>
+		      <th scope="col">手机号</th>
+		      <th scope="col">激活码</th>
+		      <th scope="col">MAC</th>
+		      <th scope="col">IP</th>
+		      <th scope="col">状态</th><!-- 任务/空闲/离线/异常  0/1/2/-1-->
+		      <th scope="col">累计时长</th>
+		      <th scope="col">最后在线时间</th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    <tr th:each="item:${list}">
+		    	<td><input class="childcheckbox" type="checkbox"></td>
+		      <td th:text="${item.id}"></td>
+		      <td th:text="${item.username}"></td>
+		      <td th:text="${item.phone}"></td>
+		      <td th:text="${item.invate}"></td>
+		      <td th:text="${item.mac}"></td>
+		      <td th:text="${item.ip}"></td>
+		      <td th:text="${item.status}"></td>
+		      <td th:text="${item.counttime}"></td>
+		      <td th:text="${item.lasttime}"></td>
+		    </tr>
+		  </tbody>
+		</table>
+	</div>
+	
+	<!-- 设置 -->
+	<div class="driver_set" style="display:none;">
+		<form id="set_from">
+			<p>同一IP在线数量限制: <input type="text" name="ipnum"></p>
+			<p>挂机数量限制: <input type="text" name="gjnum"></p>
+			<p><button onclick="driverSetting();">保存</button></p>
+		</form>
+	</div>
+	
+	<!-- 公告 -->
+	<div class="driver_note" style="display:none;">
+		<h5>公告内容</h5>
+		<div>
+			<textarea name="note" rows="5" cols="50"></textarea>
+		</div>
+		<p><button id="driverNoteBtn">保存</button></p>
+	</div>
+	
+	<script type="text/javascript">
+		var URL = "http://"+window.location.host+"/";
+		$("#driverNoteBtn").click(function(){
+			var note = $("textarea").val();
+			$.ajax({
+				url: URL+"driver/note?"+note,
+				type: "GET",
+				dataType: "JSON",
+				success: function(result){
+					alert(result.msg);
+				},
+				error: function(){
+					alert("设置失败");
+				}
+			});
+		});
+		function driverSetting(){
+			var post_data = $("#set_from").serialize();
+			$.ajax({
+				url: URL+"driver/set",
+				type: "POST",
+				data: post_data,
+				dataType: "JSON",
+				success: function(result){
+					alert(result.msg);
+				},
+				error: function(){
+					alert("设置失败");
+				}
+			});
+		}
+		function hideActive(){
+			$(".driver").each(function(){
+				$(this).attr("class","nav-link driver")
+			});
+		}
+		$("#driver_list").click(function(){
+			hideActive();
+			$("#driver_list").attr("class","nav-link driver active");
+			$(".driver_list").show();
+			$(".driver_set").hide();
+			$(".driver_note").hide();
+		});
+		$("#driver_set").click(function(){
+			hideActive();
+			$("#driver_set").attr("class","nav-link driver active");
+			$(".driver_set").show();
+			$(".driver_list").hide();
+			$(".driver_note").hide();
+		});
+		$("#driver_note").click(function(){
+			hideActive();
+			$("#driver_note").attr("class","nav-link driver active");
+			$(".driver_note").show();
+			$(".driver_set").hide();
+			$(".driver_list").hide();
+		});
+		function eachDriver(){
+			$(".driver").each(function(){
+				$(this).attr("class","nav-link driver");
+			});
+		}
+		function driverCheckbox(e){
+			$(".childcheckbox").each(function(a){
+				this.checked = e.checked;
+			});
+		}
+		
+		function search(e){
+			if(e.val() == null || e.val()==""){
+				return;
+			}
+			var status = $("#search_selected").val();
+			status = Number.parseInt(status);
+			var type = 1;
+			$(".radio").each(function(){
+				if(this.checked){
+					type = this.value;
+				}
+			});
+			$.ajax({
+				url: "http://"+window.location.host+"/search/driver?type="+type+"&keywords="+e.val()+"&status="+status,
+				type: 'GET',
+				dataType: 'JSON',
+				success: function(result){
+					console.log("搜索结果 code="+result.code);
+				},
+				error: function(){
+					console.log("搜索用户出错");
+				}
+			});
+		}
+	</script>
+
+</body>
+</html>

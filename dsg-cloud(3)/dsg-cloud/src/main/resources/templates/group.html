@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+	<link rel="shortcut icon" href="/static/img/favicon.ico">
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+	<title>角色组</title>
+</head>
+<body class="text-center">
+	<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+	
+	<ul class="nav nav-tabs">
+	  <li class="nav-item">
+	    <a class="nav-link active" id="add_group" aria-current="page" href="javascript:;">身份配置</a>
+	  </li>
+	  <li class="nav-item">
+	    <a class="nav-link" id="del_group" href="javascript:;">删除配置</a>
+	  </li>
+	</ul>
+	
+	<!-- 身份配置 -->
+	<!-- 用户配置 -->
+	<div id="set_id">
+		<p>
+			<input id="radio_1" onclick="radio()" type="radio" checked value="1" name="id"/> 用户配置 
+			<input id="radio_2" onclick="radio()" type="radio" value="2" name="id"/> 代理配置
+		</p>
+		<div id="set_yh">
+			<form id="yh_form">
+				<p>名称:
+					<select name="name">
+						<option>普通用户</option>
+						<option>VIP用户</option>
+					</select>
+				</p>
+				<p>挂机收益:<input type="text" name="bill"/></p>
+				<p>VIP价格:<input type="text" name="price"/></p>
+				<p>每日最大挂机时常:<input type="text" name="time"/></p>
+				<p>默认身份:<input type="text" name="type"/></p>
+				<p><button type="reset">重置</button> <button id="yhbt">确定</button></p>
+			</form>
+		</div>
+		<!-- 代理配置 -->
+		<div id="set_dl" style="display:none;">
+			<form id="dl_form">
+				<p>名称:
+					<select name="name">
+						<option>一级代理</option>
+						<option>二级代理</option>
+					</select>
+				</p>
+				<p>挂机返佣比例:<input type="text" name="dlgj"/></p>
+				<p>开通VIP返佣比例:<input type="text" name="dlvip"/></p>
+				<p>开通代理返佣比例:<input type="text" name="dldl"/></p>
+				<p>代理价格:<input type="text" name="dlprice"/></p>
+				<p>激活码数量:<input type="text" name="invitenum"/></p>
+				<p><button type="reset">重置</button> <button id="dlbt">确定</button></p>
+			</form>
+		</div>
+	</div>
+	<!-- 删除角色 -->
+	<div id="del_set" style="display:none;">
+		<form id="del_form">
+			<p>名称:
+				<select name="name">
+					<option>用户</option>
+					<option>代理</option>
+				</select>
+			</p>
+			
+			<p><button type="reset">重置</button> <button id="delbt">确定</button></p>
+		</form>
+	</div>
+	<script type="text/javascript">
+		var URL = "http://"+window.location.host+"/"
+		$("#yhbt").click(function(){
+			var post_data = $("#yh_form").stringify();
+			$.ajax({
+				url: URL+"group/user",
+				data: post_data,
+				type: 'POST',
+				dataType: 'JSON',
+				success: function(result){
+					if(result.code == 0){
+						alert("配置成功！");
+					}else{
+						alert("配置失败！");
+					}
+				},
+				error: function(){
+					console.log("请求出错");
+				}
+			});
+		});
+		$("#dlbt").click(function(){
+			var post_data = $("#dl_form").stringify();
+			$.ajax({
+				url: URL+"group/agent",
+				data: post_data,
+				type: 'POST',
+				dataType: 'JSON',
+				success: function(result){
+					if(result.code == 0){
+						alert("配置成功！");
+					}else{
+						alert("配置失败！");
+					}
+				},
+				error: function(){
+					console.log("请求出错");
+				}
+			});
+		});
+		$("#add_group").click(function(){
+			$("#add_group").attr("class","nav-link active");
+			$("#del_group").attr("class","nav-link");
+			$("#set_id").show();
+			$("#del_set").hide();
+		});
+		$("#del_group").click(function(){
+			$("#del_group").attr("class","nav-link active");
+			$("#add_group").attr("class","nav-link");
+			$("#del_set").show();
+			$("#set_id").hide();
+		});
+		function radio(){
+			if($("#radio_1").prop("checked")){
+				$("#set_yh").show();
+				$("#set_dl").hide();
+			}else{
+				$("#set_yh").hide();
+				$("#set_dl").show();
+			}
+		}
+	</script>
+
+</body>
+</html>

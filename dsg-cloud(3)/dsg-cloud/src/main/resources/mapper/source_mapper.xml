@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cloud.mapper.SourceMapper">
+	
+	<select id="selectSourceCountDoc" resultType="Source">
+		select count(id) from words;
+	</select>
+	
+	<select id="selectSourceDoc" resultType="Source">
+		select * from words limit #{start}, #{end};
+	</select>
+	
+	<insert id="insertSource" parameterType="Source">
+		insert into words(
+		 userid,
+		 name,
+		 comment,
+		 createtime,
+		 updatetime,
+		 pid) values (
+		 #{userid},
+		 #{name},
+		 #{comment},
+		 #{createtime},
+		 #{updatetime},
+		 #{pid});
+	</insert>
+</mapper>

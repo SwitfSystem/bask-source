@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+	<property name="logpath" value="/opt/test/log"/>
+　　　<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender"> 
+　　　　　 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+　　　　　　　　　<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern> 
+　　　　　 </encoder> 
+　　　</appender>
+	<appender name="SYSTEM" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>
+				${logpath}/system_%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<MaxHistory>15</MaxHistory>
+		</rollingPolicy>
+　　　　　 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+　　　　　　　　　<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+			<charset>UTF-8</charset>
+　　　　　 </encoder>
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+　　　</appender>
+	<appender name="LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>
+				${logpath}/log_%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<MaxHistory>15</MaxHistory>
+		</rollingPolicy>
+　　　　　 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+　　　　　　　　　<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+			<charset>UTF-8</charset>
+　　　　　 </encoder>
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+　　　</appender>
+	<appender name="APP" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>
+				${logpath}/app_%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<MaxHistory>15</MaxHistory>
+		</rollingPolicy>
+　　　　　 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+　　　　　　　　　<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+			<charset>UTF-8</charset>
+　　　　　 </encoder>
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+　　　</appender>
+	<appender name="TX" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>
+				${logpath}/tx_%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<MaxHistory>15</MaxHistory>
+		</rollingPolicy>
+　　　　　 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+　　　　　　　　　<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+			<charset>UTF-8</charset>
+　　　　　 </encoder> 
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+　　　</appender>
+	<appender name="GROUP" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>
+				${logpath}/group_%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<MaxHistory>15</MaxHistory>
+		</rollingPolicy>
+　　　　　 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+　　　　　　　　　<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+			<charset>UTF-8</charset>
+　　　　　 </encoder> 
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+　　　</appender>
+	<appender name="TASK" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>
+				${logpath}/task_%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<MaxHistory>15</MaxHistory>
+		</rollingPolicy>
+　　　　　 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+　　　　　　　　　<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+			<charset>UTF-8</charset>
+　　　　　 </encoder> 
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+　　　</appender>
+	<appender name="LOGIN" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>
+				${logpath}/login_%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<MaxHistory>15</MaxHistory>
+		</rollingPolicy>
+　　　　　 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+　　　　　　　　　<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+			<charset>UTF-8</charset>
+　　　　　 </encoder> 
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+　　　</appender>
+	<appender name="BILL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>
+				${logpath}/bill_%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<MaxHistory>15</MaxHistory>
+		</rollingPolicy>
+　　　　　 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+　　　　　　　　　<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+			<charset>UTF-8</charset>
+　　　　　 </encoder> 
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+　　　</appender>
+	<appender name="DRIVER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>
+				${logpath}/driver_%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<MaxHistory>15</MaxHistory>
+		</rollingPolicy>
+　　　　　 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+　　　　　　　　　<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+			<charset>UTF-8</charset>
+　　　　　 </encoder>
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy> 
+　　　</appender>
+	<appender name="USER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>
+				${logpath}/user_%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<MaxHistory>15</MaxHistory>
+		</rollingPolicy>
+　　　　　 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+　　　　　　　　　<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+			<charset>UTF-8</charset>
+　　　　　 </encoder> 
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+　　　</appender>
+	<appender name="TOKEN" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>
+				${logpath}/token_%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<MaxHistory>15</MaxHistory>
+		</rollingPolicy>
+　　　　　 <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+　　　　　　　　　<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+			<charset>UTF-8</charset>
+　　　　　 </encoder> 
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+　　　</appender>
+	
+	<logger name="org.apache.ibatis" level="ERROR" />
+	<logger name="org.springframework" level="ERROR" />
+	
+	<logger name="SYSTEM" addtivity="false" level="INFO">
+		<appender-ref ref="SYSTEM"/>
+	</logger>
+	<logger name="LOGIN" addtivity="false" level="INFO">
+		<appender-ref ref="LOGIN"/>
+	</logger>
+	<logger name="APP" addtivity="false" level="INFO">
+		<appender-ref ref="APP"/>
+	</logger>
+	<logger name="LOG" addtivity="false" level="INFO">
+		<appender-ref ref="LOG"/>
+	</logger>
+	<logger name="TX" addtivity="false" level="INFO">
+		<appender-ref ref="TX"/>
+	</logger>
+	<logger name="GROUP" addtivity="false" level="INFO">
+		<appender-ref ref="GROUP"/>
+	</logger>
+	<logger name="TASK" addtivity="false" level="INFO">
+		<appender-ref ref="TASK"/>
+	</logger>
+	<logger name="BILL" addtivity="false" level="INFO">
+		<appender-ref ref="BILL"/>
+	</logger>
+	<logger name="DRIVER" addtivity="false" level="INFO">
+		<appender-ref ref="DRIVER"/>
+	</logger>
+	<logger name="USER" addtivity="false" level="INFO">
+		<appender-ref ref="USER"/>
+	</logger>
+	<logger name="TOKEN" addtivity="false" level="INFO">
+		<appender-ref ref="TOKEN"/>
+	</logger>
+	
+　　　<root level="INFO"> 
+　　　　　　<appender-ref ref="STDOUT" />
+　　　</root> 
+</configuration>

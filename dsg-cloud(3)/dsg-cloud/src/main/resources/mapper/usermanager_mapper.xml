@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cloud.mapper.UserManagerMapper">
+	
+	<select id="selectUserByPid" parameterType="Integer" resultType="User">
+		select * from user where pid=#{id};
+	</select>
+	
+	<select id="selectListLevel" resultType="Level">
+		select * from level;
+	</select>
+	
+	<update id="updateUser" parameterType="User">
+		update user set 
+		password=#{password},
+		pid=#{pid},
+		status=#{status},
+		viplevel=#{viplevel},
+		agentlevel=#{agentlevel},
+		balance=#{balance}
+		where id=#{id};
+	</update>
+	
+	<update id="updateUserStatus" parameterType="User">
+		update user set
+		status=#{status}
+		where id=#{id};
+	</update>
+	
+	<delete id="deleteUserById" parameterType="Integer">
+		delete from user where id=#{id};
+	</delete>
+</mapper>

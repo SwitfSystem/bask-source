@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+	<link rel="shortcut icon" href="/static/img/favicon.ico">
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+	<title>日志管理</title>
+</head>
+<body class="text-center">
+	<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+	
+	<ul class="nav nav-tabs">
+	  <li class="nav-item">
+	    <a class="nav-link active" id="app_log" aria-current="page" href="javascript:;">应用日志</a>
+	  </li>
+	  <li class="nav-item">
+	    <a class="nav-link" id="bill_log" href="javascript:;">佣金日志</a>
+	  </li>
+	  <li class="nav-item">
+	    <a class="nav-link" id="tx_log" href="javascript:;">提现日志</a>
+	  </li>
+	</ul>
+	<div id="log_text" style="display: none;width: 100%;height: 100%;">
+		<p><button id="log_close" type="button">关闭</button></p>
+		<div id="log_content" style="width: 100%;height: 100%;"></div>
+	</div>
+	<div id="log_table">
+		<table class="table table-hover">
+		  <thead>
+		    <tr>
+		    	<th scope="col">
+		    		<input onclick="logCheckbox(this);" type="checkbox">
+		    	</th>
+		      <th scope="col">名称</th>
+		      <th scope="col">时间</th>
+		      <th scope="col">大小</th>
+		      <th scope="col">操作</th>
+		    </tr>
+		  </thead>
+		  <tbody id="log_tbody">
+		    <tr>
+		      <td>
+		        <input class="childcheckbox" type="checkbox">
+		      </td>
+		      <td></td>
+		      <td></td>
+		      <td></td>
+		      <td>
+		      		<p>
+		      			<button type="button" class="btn btn-primary btn-xs" onclick="logOpen('');">打开</button>
+		      			<button type="button" class="btn btn-dranger btn-xs" onclick="logDownload('');">下载</button>
+		      		</p>
+		      </td>
+		    </tr>
+		  </tbody>
+		</table>
+	</div>
+
+	<script type="text/javascript">
+		var logurl = "app";
+		requestLog(1);
+		function logOpen(e){
+			var id = NUMBER.parseInt(e);
+			$.ajax({
+				url: "http://"+window.location.host+"/log/download?id="+id,
+				type: 'GET',
+				dateType: 'JSON',
+				success: function(result){
+					$("#log_content").html(result.data);
+				},
+				error: function(){
+					console.log("打开日志错误");
+				}
+			})
+		}
+		function logDownload(e){
+			window.location.href("http://"+window.location.host+"/download/log/"+e);
+		}
+		function logCheckbox(e){
+			$(".childcheckbox").each(function(a){
+				this.checked = e.checked;
+			});
+		}
+		$("#app_log").click(function(){
+			$("#app_log").attr("class","nav-link active");
+			$("#bill_log").attr("class","nav-link");
+			$("#tx_log").attr("class","nav-link");
+			logurl = "bill";
+			requestLog(1);
+		});
+		$("#bill_log").click(function(){
+			$("#bill_log").attr("class","nav-link active");
+			$("#app_log").attr("class","nav-link");
+			$("#tx_log").attr("class","nav-link");
+			logurl = "bill";
+			requestLog(1);
+		});
+		$("#tx_log").click(function(){
+			$("#tx_log").attr("class","nav-link active");
+			$("#app_log").attr("class","nav-link");
+			$("#bill_log").attr("class","nav-link");
+			logurl = "tx";
+			requestLog(1);
+		});
+		function requestLog(page){
+			var URL = "http://" + window.location.host + "/log/list?page="+page+"&log=";
+			$.ajax({
+				url: URL+url,
+				type: 'GET',
+				dataType: 'JSON',
+				success: function(result){
+					var list = result.data;
+					var html = "";
+					for(var i=0;i<list.length;i++){
+						html = html + "<tr><td><input class='childcheckbox' type='checkbox'></td><td>"+list[i].name+"</td><td>"+list[i].time+"</td><td>"+list[i].size+"</td><td><p><button type='button' class='btn btn-primary btn-xs' onclick='logOpen("+list[i].id+");'>打开</button><button type='button' class='btn btn-dranger btn-xs' onclick='logDownload("+list[i].name+");'>下载</button></p></td></tr>";
+					}
+					$("#log_tbody").html(html);
+				},
+				error: function(e){
+					console.log(e);
+				}
+			})
+		}
+		
+	</script>
+
+</body>
+</html>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cloud.mapper.GroupMapper">
+	
+	<insert id="insertUserSet" parameterType="UserSetting">
+		insert into group_user(
+		 name,
+		 bill,
+		 price,
+		 time,
+		 type) values (
+		 #{name},
+		 #{bill},
+		 #{price},
+		 #{time},
+		 #{type});
+	</insert>
+	
+	<insert id="insertAgentSet" parameterType="AgentSetting">
+		insert into group_agent(
+		 name,
+		 dlyj,
+		 dlvip,
+		 dldl,
+		 dlprice,
+		 invitenum) values (
+		 #{name},
+		 #{dlyj},
+		 #{dlvip},
+		 #{dldl},
+		 #{dlprice},
+		 #{invitenum});
+	</insert>
+	
+	<update id="updateUserSet" parameterType="UserSetting">
+		update group_user set 
+		name=#{name},
+		bill=#{bill},
+		time=#{time},
+		price=#{price},
+		type=#{type},
+		where name=#{name};
+	</update>
+	
+	<update id="updateAgentSet" parameterType="AgentSetting">
+		update group_agent set 
+		name=#{name},
+		dlyj=#{dlyj},
+		dlvip=#{dlvip},
+		dldl=#{dldl},
+		dlprice=#{dlprice},
+		invitenum=#{invitenum}
+		where name=#{name};
+	</update>
+	
+	<delete id="deleteUserSet" parameterType="UserSetting">
+		delete from group_user where name=#{name};
+	</delete>
+	
+	<delete id="deleteAgentSet" parameterType="AgentSetting">
+		delete from group_agent where name=#{name};
+	</delete>
+</mapper>

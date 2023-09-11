@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+	<link rel="shortcut icon" href="/static/img/favicon.ico">
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+	<title>财务管理</title>
+</head>
+<body class="text-center">
+	<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+	
+	<div class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" style="width: 300px;" >
+          <input onkeydown="search(this)" type="search" class="form-control" placeholder="搜索手机号" aria-label="Search">
+    </div>
+	
+	<!-- 提现信息列表 -->
+	<ul class="nav nav-tabs">
+	  <li class="nav-item">
+	    <a class="nav-link active bill" onclick="showBill(this);" data="3" href="javascript:;" aria-current="page">全部</a>
+	  </li>
+	  <li class="nav-item">
+	    <a class="nav-link bill" id="bill_deal" onclick="showBill(this);" data="2" href="javascript:;">待处理</a>
+	  </li>
+	  <li class="nav-item">
+	    <a class="nav-link bill" id="reason" onclick="showBill(this);" data="1" href="javascript:;">未通过</a>
+	  </li>
+	  <li class="nav-item">
+	    <a class="nav-link bill" onclick="showBill(this);" data="0" href="javascript:;">已通过</a>
+	  </li>
+	</ul>
+	<!-- 待处理 --><!-- 新的提现申请 -->
+	<!-- 已通过 -->
+	<!-- 未通过 --><!-- 原因 -->
+	
+	<div class="tableFlush" th:fragment="tableFlush">
+		<table class="table table-hover">
+		  <thead>
+		    <tr>
+		      <th scope="col">
+		    		<input onclick="billCheckbox(this);" type="checkbox">
+		      </th>
+		      <th scope="col" th:text="${arr[0]}">编号</th>
+		      <th scope="col" th:text="${arr[1]}">手机号</th>
+		      <th scope="col" th:text="${arr[2]}">提现金额</th>
+		      <th scope="col" th:text="${arr[3]}">账户余额</th>
+		      <th scope="col" th:text="${arr[4]}">提现时间</th>
+		      <th scope="col" th:text="${arr[5]}">支付宝名称</th>
+		      <th scope="col" th:text="${arr[6]}">审核状态</th>
+		      <th class="bill_deal" scope="col">操作</th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    <tr th:each="item:${list}">
+		    	<td><input class="childcheckbox" type="checkbox"></td>
+		    	<td th:text="${item.id}"></td>
+		    	<td th:text="${item.phone}"></td>
+		    	<td><span th:text="${item.money}"></span> <a th:onclick="showBillDetail([[${item}]]);" href="javascript:;">详情</a></td>
+		    	<td th:text="${item.balance}"></td>
+		    	<td th:text="${item.time}"></td>
+		    	<td th:text="${item.alipay}"></td>
+		    	<td class="status" th:text="${item.status}"></td>
+		    	<td class="reason" th:text="${item.reason}"></td>
+		    	<td class="bill_deal"><button th:onclick="showBillModal([[${item}]]);">拒绝</button> 
+		    		<button th:onclick="billPass([[${item}]]);">通过</button>
+		    	</td>
+		    </tr>
+		  </tbody>
+		</table>
+	</div>
+	
+	<!-- 佣金详情 -->
+	<!-- 模态框（Modal） -->
+	<div class="modal fade" id="billDtailModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="myModalLabel1">
+						审批
+					</h5>
+				</div>
+				<div class="modal-body text-center">
+					  <input id="bill_dtail_id" name="id" type="hidden">
+					  <div>
+						<table class="table table-hover">
+						  <thead>
+						    <tr>
+						      <th scope="col">编号</th>
+						      <th scope="col">挂机佣金</th>
+						      <th scope="col">用户开通VIP返佣</th>
+						      <th scope="col">用户开通代理返佣</th>
+						      <th scope="col">代理挂机返佣</th>
+						      <th scope="col">代理开通VIP返佣</th>
+						      <th scope="col">代理开通代理返佣</th>
+						    </tr>
+						  </thead>
+						  <tbody>
+						    <tr>
+						    	<td id="bill_detail_id"></td>
+						    	<td id="bill_detail_yhgj"></td>
+						    	<td id="bill_detail_yhvip"></td>
+						    	<td id="bill_detail_yhdl"></td>
+						    	<td id="bill_detail_dlgj"></td>
+						    	<td id="bill_detail_dlvip"></td>
+						    	<td id="bill_detail_dldl"></td>
+						    </tr>
+						  </tbody>
+						</table>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button onclick="closeBillDetailModal();" type="button" class="btn btn-default" 
+							data-dismiss="modal">关闭
+					</button>
+				</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div>
+	
+	<!-- 审批操作 -->
+	<!-- 模态框（Modal） -->
+	<div class="modal fade" id="billReasonModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="myModalLabel2">
+						审批不通过原因
+					</h5>
+				</div>
+				<div class="modal-body text-center">
+					<form id="changeBillInfoForm">
+						<input id="myBill" type="hidden" name="bill" ></input>
+						<p><span>原因: </span>
+							<input type="text" name="reason"></input>
+						</p>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button onclick="closeBillModal();" type="button" class="btn btn-default" 
+							data-dismiss="modal">取消
+					</button>
+					<button onclick="changeBillInfoBtn();" type="button" class="btn btn-primary">
+						确定
+					</button>
+				</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div>
+
+	<script type="text/javascript">
+		var URL = "http://"+window.location.host+"/";
+		function changeBillInfoBtn(){
+			var post_data = $("#changeBillInfoForm").serialize();
+			$.ajax({
+				url: URL+"bill/reason",
+				type: "POST",
+				data: post_data,
+				dataType: "JSON",
+				success: function(result){
+					closeBillModal();
+					alert(result.msg);
+				},
+				error: function(){
+					alert("审批失败");
+				}
+			});
+		}
+		function showBillModal(bill){
+			$("#myBill").val(bill);
+			$('#billReasonModal').modal('show');
+		}
+		function billPass(bill){
+			$.ajax({
+				url: URL+"bill/pass",
+				type: "POST",
+				data: bill,
+				dataType: "JSON",
+				success: function(result){
+					alert(result.msg);
+				},
+				error: function(){
+					alert("审批失败");
+				}
+			});
+		}
+		function showBillDetail(e){
+			$.ajax({
+				url: URL+"bill/detail?phone="+e.id,
+				type: "GET",
+				dataType: "JSON",
+				success: function(result){
+					$("#bill_detail_id").html(result.id);
+					$("#bill_detail_yhgj").html(result.yhgj);
+					$("#bill_detail_yhvip").html(result.yhvip);
+					$("#bill_detail_yhdl").html(result.yhdl);
+					$("#bill_detail_dlgj").html(result.dlgj);
+					$("#bill_detail_dlvip").html(result.dlvip);
+					$("#bill_detail_dldl").html(result.dldl);
+				},
+				error: function(){
+					console.log("获取佣金详情出错");
+				}
+			});
+			$('#billDtailModal').modal('show');
+		}
+		function closeBillModal(){
+			$('#billReasonModal').modal('hide');
+		}
+		function closeBillDetailModal(){
+			$('#billDtailModal').modal('hide');
+		}
+		function flushTable(page,value){
+			$.ajax({
+				url: URL+"bill/flush?page="+page+"&value="+value,
+				type: "GET",
+				success: function(result){
+					$(".tableFlush").html(result);
+				},
+				error: function(){
+					console.log("获取佣金表数据出错");
+				}
+			});
+		}
+		function showBill(e){
+			var id = "";
+			var page = 1;
+			var value = 3;
+			$(".bill").each(function(){
+				$(this).attr("class","nav-link bill");
+			});
+			$(e).attr("class","nav-link active bill");
+			value = Number.parseInt($(e).attr("data"));
+			flushTable(page,value);
+			if($(e).attr("id") == "reason"){
+				$(".status").remove();
+			}else{
+				$(".reason").remove();
+			}
+			if($(e).attr("id") != "bill_deal"){
+				$(".bill_deal").remove("");
+			}
+		}
+		
+		function billCheckbox(e){
+			$(".childcheckbox").each(function(a){
+				this.checked = e.checked;
+			});
+		}
+		
+		function search(e){
+			if(e.val() == null || e.val()==""){
+				return;
+			}
+			$.ajax({
+				url: "http://"+window.location.host+"/search/bill?keywords="+e.val(),
+				type: 'GET',
+				dataType: 'JSON',
+				success: function(result){
+					console.log("搜索结果 code="+result.code);
+				},
+				error: function(){
+					console.log("搜索用户出错");
+				}
+			});
+		}
+	</script>
+
+</body>
+</html>

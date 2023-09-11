@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+	<link rel="shortcut icon" href="/static/img/favicon.ico">
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+	<title>用户管理</title>
+</head>
+<body class="text-center">
+	<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+	
+	<div class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" style="width: 300px;" >
+          <input onkeydown="search(this);" type="search" class="form-control" aria-label="Search">
+          <input id="radio_1" onclick="radio()" type="radio" name="type" checked>手机号 
+          <input id="radio_2" onclick="radio()" type="radio" name="type">用户名
+    </div>
+	
+	<div>
+		<table class="table table-hover">
+		  <thead>
+		    <tr>
+		    	<th scope="col">
+		    		<input onclick="usercheckbox(this);" type="checkbox">
+		    	</th>
+		      <th scope="col">编号</th>
+		      <th scope="col">用户名</th>
+		      <th scope="col">手机号</th>
+		      <th scope="col">邀请码</th>
+		      <th scope="col">上级ID</th>
+		      <th scope="col">用户类型</th>
+		      <th scope="col">注册时间</th>
+		      <th scope="col">用户余额</th>
+		      <th scope="col">操作</th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    <tr th:each="item:${list}">
+		    	<td><input class="childcheckbox" type="checkbox"></td>
+		      <td th:text="${item.id}"></td>
+		      <td th:text="${item.username}"></td>
+		      <td th:text="${item.phone}"></td>
+		      <td th:text="${item.invitationcode}"></td>
+		      <td th:text="${item.pid}"></td>
+		      <td th:text="${item.viplevel}"></td>
+		      <td th:text="${item.createtime}"></td>
+		      <td th:text="${item.balance}"></td>
+		      <td>
+		      		<p>
+		      			<button type="button" class="btn btn-primary btn-xs" th:onclick="userManager([[${item}]]);">修改</button>
+		      			<button type="button" class="btn btn-dranger btn-xs" th:onclick="userDelete([[${item.id}]]);">删除</button>
+		      		</p>
+		      </td>
+		    </tr>
+		  </tbody>
+		</table>
+	</div>
+	<!-- 模态框（Modal） -->
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="myModalLabel">
+						手机管理
+					</h5>
+				</div>
+				<div class="modal-body text-center">
+					<form id="changeUserInfoForm">
+						<input id="user_id" name="id" type="hidden">
+						<p><span>用户类型:</span>
+							<select name="explain">
+								<option th:each="value:${level}" th:value="${value.id}" th:text="${value.explain}" th:selected="${selected eq value.id}"></option>
+							</select>
+						</p>
+						<p><span>VIP等级:</span>
+							<select name="viplevel" id="selectVipLevel">
+								<option value="0">非VIP</option>
+								<option value="1">1</option>
+								<option value="2">2</option>
+								<option value="3">3</option>
+							</select>
+						</p>
+						<p><span>代理等级:</span>
+							<select name="agentlevel" id="selectAgentLevel">
+								<option value="0">非代理</option>
+								<option value="1">1</option>
+								<option value="2">2</option>
+								<option value="3">3</option>
+							</select>
+						</p>
+						<span>密码:</span>
+						<input id="user_pwd" disabled name="password" type="password">
+						<input id="changePwd" type="checkbox">
+						<br>
+						<span>余额:</span><input id="user_blc" name="balance" type="text"><br>
+						<span>上级ID:</span><input id="user_pid" name="pid" type="text"><br>
+						<p><span>用户状态:</span>
+							<select name="status" id="selectStatus">
+								<option value="0">正常</option>
+								<option value="1">已冻结</option>
+								<option value="2">已冻结该账户及下级账户</option>
+							</select>
+						</p>
+						<br>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button onclick="closeUserModal();" type="button" class="btn btn-default" 
+							data-dismiss="modal">取消
+					</button>
+					<button onclick="changeUserInfoBtn();" type="button" class="btn btn-primary">
+						确定
+					</button>
+				</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div>
+
+	<script type="text/javascript">
+		var URL = "http://"+window.location.host+"/";
+		var page = 1;
+		var num = 10;
+		function selectLevel(e){
+			
+		}
+		function changeUserInfoBtn(){
+			var post_data = $("#changeUserInfoForm").serialize();
+			$.ajax({
+				url: URL+"user/update",
+				type: 'POST',
+				data: post_data,
+				dataType: 'JSON',
+				success:function(result){
+					closeUserModal();
+					alert(result.msg);
+				},
+				error:function(){
+					alert("无法修改");
+				}
+			});
+		}
+		$("#changePwd").click(function(){
+			if($("#changePwd").prop('checked')){
+				$("#user_pwd").removeAttr("disabled");
+			}else{
+				$("#user_pwd").attr("disabled","disabled");
+			}
+		});
+		function userManager(e){
+			$("#user_id").val(e.id);
+			$("#user_vip").val(e.viplevel);
+			$("#user_agent").val(e.agentlevel);
+			$("#user_pwd").val('123456');
+			$("#user_blc").val(e.balance);
+			$("#user_pid").val(e.pid);
+			$("#selectVipLevel").val(e.viplevel);
+			$("#selectAgentLevel").val(e.agentlevel);
+			$("#selectStatus").val(e.status);
+			$("#myModal").modal('toggle');
+		}
+		function userDelete(e){
+			var a = confirm("确定删除用户该用户吗?");
+			if(a){
+				var post_data = "id="+e+"&num="+num+"&page="+page;
+				$.ajax({
+					url: URL+"user/delete",
+					type: 'POST',
+					data: post_data,
+					dataType: 'JSON',
+					success:function(result){
+						$("#content").load(result);
+					},
+					error:function(){
+						alert("无法删除");
+					}
+				});
+			}
+		}
+		function closeUserModal(){
+			$('#myModal').modal('hide');
+		}
+		function usercheckbox(e){
+			$(".childcheckbox").each(function(a){
+				this.checked = e.checked;
+			});
+		}
+		function radio(){
+			if($("#radio_1").prop("checked")){
+				return true;
+			}else{
+				return false;
+			}
+		}
+		function search(e){
+			if(e.val() == null || e.val()==""){
+				return;
+			}
+			var type = "phone";
+			if(!radio()){
+				type = "name";
+			};
+			$.ajax({
+				url: URL+"search/user?type="+type+"&keywords="+e.val(),
+				type: 'GET',
+				dataType: 'JSON',
+				success: function(result){
+					console.log("搜索结果 code="+result.code);
+				},
+				error: function(){
+					console.log("搜索用户出错");
+				}
+			});
+		}
+	</script>
+
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+	<link rel="shortcut icon" href="/static/img/favicon.ico">
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+	<title>index</title>
+</head>
+<body class="text-center">
+	<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+	<div th:replace="header::html"></div>
+	<div class="container-fluid">
+		
+		<div class="row">
+			<div id="side" class="col-lg-1">
+				<ul class="nav nav-pills flex-column mb-auto">
+					<li id="user" onclick="clickSide(this)" class="nav-item"><a href="javascript:;">用户管理</a></li>
+					<li id="agent" onclick="clickSide(this)"><a href="javascript:;">代理管理</a></li>
+					<li id="bill" onclick="clickSide(this)"><a href="javascript:;">财务管理</a></li>
+					<li id="driver" onclick="clickSide(this)"><a href="javascript:;">设备管理</a></li>
+					<li id="task" onclick="clickSide(this)"><a href="javascript:;">任务管理</a></li>
+					<li id="source" onclick="clickSide(this)"><a href="javascript:;">素材管理</a></li>
+					<li id="group" onclick="clickSide(this)"><a href="javascript:;">角色设置</a></li>
+					<li id="log" onclick="clickSide(this)"><a href="javascript:;">日志管理</a></li>
+					<li id="setting" onclick="clickSide(this)"><a href="javascript:;">系统管理</a></li>
+				</ul>
+			</div>
+			<div class="col-lg-10">
+				<div id="content"></div>
+			</div>
+			<div class="col-lg-1">
+			</div>
+		</div>
+	</div>
+	
+	<script type="text/javascript">
+		var URL = "http://"+window.location.host+"/";
+		function clickSide(e){
+			var id = $(e).attr("id");
+			$("#content").html("<div class='text-center'>列表为空...</div>");
+			httpRequest(id,1)
+		}
+		function httpRequest(id,page){
+			if(id=="user"){
+				$("#content").load(URL+id+"/list?page="+page);
+			}else if(id=="agent"){
+				$("#content").load(URL+id+"/list?page="+page);
+			}else if(id=="bill"){
+				$("#content").load(URL+id+"/list?page="+page);
+			}else if(id=="driver"){
+				$("#content").load(URL+id+"/list?page="+page);
+			}else if(id=="source"){
+				$("#content").load(URL+id+"/list?page="+page);
+			}else if(id=="task"){
+				$("#content").load(URL+id+"/list?page="+page);
+			}else if(id=="group"){
+				$("#content").load(URL+id+"/list?page="+page);
+			}else if(id=="log"){
+				$("#content").load(URL+id+"/list?page="+page);
+			}else if(id=="setting"){
+				$("#content").load(URL+id+"/list");
+			}
+		}
+	</script>
+</body>
+</html>

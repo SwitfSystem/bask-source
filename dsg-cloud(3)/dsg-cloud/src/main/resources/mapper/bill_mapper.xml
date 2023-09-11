@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cloud.mapper.BillMapper">
+	<select id="selectBillByPhone" parameterType="String" resultType="Bill">
+		select * from bill where phone=#{phone};
+	</select>
+	
+	<select id="selectBillCount" resultType="Bill">
+		select count(id) from bill;
+	</select>
+	
+	<select id="selectBillCountUser" parameterType="Integer" resultType="Bill">
+		select count(id) from bill where user_id=#{user_id};
+	</select>
+	
+	<select id="selectBillCountByStatus" parameterType="Integer" resultType="Integer">
+		select count(id) from bill where status=#{status};
+	</select>
+	
+	<select id="selectBillById" parameterType="Integer" resultType="Bill">
+		select * from bill where id=#{id};
+	</select>
+	
+	<select id="selectList" resultType="Bill">
+		select * from bill;
+	</select>
+	
+	<select id="selectListByStatus" parameterType="Integer" resultType="Bill">
+		select * from bill where status=#{status} limit #{start}, #{end};
+	</select>
+	
+	<select id="selectListByStatusUser" parameterType="Integer" resultType="Bill">
+		select * from bill where user_id=#{user_id} and status=#{status} limit #{start}, #{end};
+	</select>
+	
+	<select id="selectBillDetail" parameterType="String" resultType="BillDetail">
+		select * from bill_detail where user_id=#{user_id} and order=#{order};
+	</select>
+	
+	<insert id="insertBill">
+		insert into bill (
+			phone,
+			money,
+			balance,
+			time,
+			alipay,
+			wxpay,
+			status,
+		) values (
+			#{phone},
+			#{money},
+			#{balance},
+			#{time},
+			#{alipay},
+			#{wxpay},
+			#{status}
+		);
+	</insert>
+	
+	<update id="updateBill" parameterType="Bill">
+		update bill set 
+		status=#{status},
+		reason=#{reason}
+		where phone=#{phone};
+	</update>
+	
+	<delete id="deleteBillByPhone" parameterType="String">
+		delete from bill where phone=#{phone};
+	</delete>
+</mapper>

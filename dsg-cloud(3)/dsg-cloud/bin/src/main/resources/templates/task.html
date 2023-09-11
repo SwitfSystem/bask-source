@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+	<link rel="shortcut icon" href="/static/img/favicon.ico">
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+	<title>任务管理</title>
+</head>
+<body class="text-center">
+	<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+	
+	<ul class="nav nav-tabs">
+	  <li class="nav-item">
+	    <a class="nav-link active" id="task_market" aria-current="page" href="javascript:;">营销任务</a>
+	  </li>
+	  <li class="nav-item">
+	    <a class="nav-link" id="task_list" href="javascript:;">任务列表</a>
+	  </li>
+	</ul>
+	<!-- 营销任务 -->
+	<div class="task_market">
+		<form id="task_form">
+			<p><input type="radio" value="1" name="platform"/>抖音 <input type="radio" value="2" name="platform"/>快手</p>
+			<p><input id="sixin" type="radio" name="type"/>私信 <input id="zhibo" type="radio" name="type"/>直播间</p>
+			<input type="hidden" id="code" name="code">
+			<select id="sixin_select" onchange="taskSelectChange(this);" style="display:none">
+				<option value="11">账号私信</option>
+				<option value="12">直播私信</option>
+				<option value="13">评论私信</option>
+			</select>
+			<select id="zhibo_select" onchange="taskSelectChange(this);" style="display:none">
+				<option value="21">超级热度</option>
+				<option value="22">直播间暖场</option>
+				<option value="23">实时互动</option>
+				<option value="24">疯狂点屏</option>
+				<option value="25">关注榜1至榜10</option>
+			</select>
+			<p>目前空闲设备数量: <span id="task_online"></span></p>
+			<p>此次控制设备数量: <input type="text" name="num"></p>
+			<p>
+				<button type="reset">重置</button>
+				<button onclick="taskSubmit();" type="button">确定</button>
+			</p>
+			
+		</form>
+	</div>
+	
+	<!-- 任务列表 -->
+	<div class="task_list" style="display:none;">
+		<table class="table table-hover">
+		  <thead>
+		    <tr>
+		      <th scope="col">
+		    		<input onclick="taskCheckbox(this);" type="checkbox">
+		      </th>
+		      <th scope="col">用户名</th>
+		      <th scope="col">手机号</th>
+		      <th scope="col">MAC</th>
+		      <th scope="col">IP</th>
+		      <th scope="col">任务内容</th>
+		      <th scope="col">任务状态</th>
+		      <th scope="col">任务时间</th>
+		      <th scope="col">操作</th>
+		    </tr>
+		  </thead>
+		  <tbody id="task_flush">
+		  </tbody>
+		</table>
+	</div>
+
+	<script type="text/javascript">
+		var URL = "http://"+window.location.host+"/";
+		//setInterval("flushTask()",30000);
+		function autoFlush(){
+			setTimeout(function(){
+				flushTask();
+			},0);
+		}
+		autoFlush();
+		function flushTask(){
+			$.ajax({
+				url: URL+"task/flush",
+				type: "GET",
+				dataType: "JSON",
+				success: function(result){
+					$("#task_online").html(result.data.free);
+					var html = "";
+					var list = result.data.list;
+					for(var i=0;i<list.length;i++){
+						html = html + "<tr><td><input class='childcheckbox' type='checkbox'></td><td>"+list[i].username+"</td><td>"+list[i].phone+"</td><td>"+list[i].mac+"</td><td>"+list[i].ip+"</td><td>"+list[i].content+"</td><td>"+list[i].status+"</td><td>"+list[i].time+"</td><td><p><button type='button' class='btn btn-primary btn-xs' onclick='taskStop();'>停止</button><button type='button' class='btn btn-dranger btn-xs' onclick='taskContinue();'>继续</button></p></td></tr>";
+					};
+					$("#task_flush").html(html);
+					console.log(result.msg);
+				},
+				error: function(){
+					console,log("实时监测任务失败");
+				}
+			});
+		}
+		function taskSelectChange(e){
+			$("#code").val($(e).val());console.log("selected-->"+$(e).val());
+		}
+		$("#sixin").click(function(){
+			console.log("私信-->"+$("#sixin").val());
+			$("#sixin_select").show();
+			$("#zhibo_select").hide();
+		});
+		$("#zhibo").click(function(){
+			console.log("直播-->"+$("#zhibo").val());
+			$("#zhibo_select").show();
+			$("#sixin_select").hide();
+		});
+		function taskSubmit(){
+			var post_data = $("#task_form").serialize();
+			$.ajax({
+				url: URL+"task/execute",
+				type: "POST",
+				data: post_data,
+				dataType: "JSON",
+				success: function(result){
+					alert(result.msg);
+				},
+				error: function(){
+					alert("任务发布失败");
+				}
+			});
+		}
+		$("#task_market").click(function(){
+			$("#task_market").attr("class","nav-link active");
+			$("#task_list").attr("class","nav-link");
+			$(".task_list").hide();
+			$(".task_market").show();
+			autoFlush();
+		});
+		$("#task_list").click(function(){
+			$("#task_list").attr("class","nav-link active");
+			$("#task_market").attr("class","nav-link");
+			$(".task_market").hide();
+			$(".task_list").show();
+			autoFlush();
+		});
+		function taskStop(){
+			
+		}
+		function taskContinue(){
+			
+		}
+		function taskCheckbox(e){
+			$(".childcheckbox").each(function(a){
+				this.checked = e.checked;
+			});
+		}
+	</script>
+
+</body>
+</html>

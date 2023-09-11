@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cloud.mapper.UserMapper">
+	
+	<select id="selectAdminByPhone" resultType="Admin">
+		select * from admin where phone=#{phone};
+	</select>
+	
+	<select id="selectByInvitate" resultType="String">
+		select invitationcode from user where invitationcode not null limit #{start}, #{end};
+	</select>
+	
+	<select id="selectByInvitateUser"  parameterType="Integer" resultType="String">
+		select invitationcode from user where id=#{id};
+	</select><!--  and invitationcode not null limit #{start}, #{end}; -->
+	
+	<select id="selectByAgentLevel" parameterType="Integer" resultType="User">
+		select * from user where agentlevel>0 limit #{start}, #{end};
+	</select>
+	
+	<select id="selectByAgentLevelUser" parameterType="Integer" resultType="User">
+		select * from user where pid=#{pid} and agentlevel>0 limit #{start}, #{end};
+	</select>
+	
+	<select id="selectAgentByPhone" parameterType="Integer" resultType="User">
+		select * from user where phone=#{phone} and agentlevel>0;
+	</select>
+	
+	<select id="selectAgentByName" parameterType="Integer" resultType="User">
+		select * from user where username=#{username} and agentlevel>0;
+	</select>
+	
+	<select id="selectCount" resultType="Integer">
+		select count(id) from user;
+	</select>
+	
+	<select id="selectCountUser" parameterType="Integer" resultType="Integer">
+		select count(id) from user where pid=#{pid};
+	</select>
+
+	<select id="selectByPage" parameterType="Integer" resultType="User">
+		select * from user order by id limit #{start},#{end};
+	</select>
+	
+	<select id="selectByPageUser" parameterType="Integer" resultType="User">
+		select * from user where pid=#{pid} order by id limit #{start},#{end};
+	</select>
+	
+	<select id="selectById" parameterType="Integer" resultType="User">
+		select * from user where id=#{id};
+	</select>
+	
+	<select id="selectByName" parameterType="String" resultType="User">
+		select * from user where username=#{username};
+	</select>
+	
+	<select id="selectByPhone" parameterType="String" resultType="User">
+		select * from user where phone=#{phone};
+	</select>
+	
+	<select id="selectByInvitationcode" parameterType="String" resultType="User">
+		select * from user where invitationcode=#{invitationcode};
+	</select>
+	
+	<select id="selectOrderByInvitationcode" resultType="String">
+		SELECT invitationcode FROM user ORDER BY invitationcode DESC LIMIT 1;
+	</select>
+	
+	<select id="selectAllUser" resultType="User">
+		select * from user;
+	</select>
+	
+	<insert id="insert" parameterType="User">
+		insert into user(
+		 username,
+		 password,
+		 phone,
+		 agentlevel,
+		 viplevel,
+		 createtime,
+		 loginip,
+		 status,
+		 updatetime,
+		 invitationcode,
+		 pid,
+		 balance) values (
+		 #{username},
+		 #{password},
+		 #{phone},
+		 #{agentlevel},
+		 #{viplevel},
+		 #{createtime},
+		 #{loginip},
+		 #{status},
+		 #{updatetime},
+		 #{invitationcode},
+		 #{pid},
+		 #{balance});
+	</insert>
+	<update id="updateBalance" parameterType="User">
+		update user set balance=#{balance} where id=#{id};
+	</update>
+</mapper>

@@ -1,0 +1,1815 @@
+"ui";
+importClass(android.widget.Toast);
+importClass(android.provider.Settings);
+importClass(android.widget.Button);
+importClass(android.view.View);
+importClass('android.view.WindowManager');
+importClass('android.view.Gravity');
+importClass('android.graphics.PixelFormat');
+ui.statusBarColor("#000000");
+var myApp = {
+    baseUrl: "http://124.222.147.48:8080", // 后台访问地址
+    wbsurl: "ws://124.222.147.48:7000/dsg_cloud",
+    width: device.width,
+    height: device.height,
+    currentVersion: app.versionName,
+    packageName: "com.pp.app",
+    app_version: "1.0.0",
+    app_name: "DSG",
+    dy_version: "17.0.0",
+    ks_version: "9.8.40.21868",
+
+};
+var 激活key = null
+// var common = require('./common.js');
+var common = {};
+//封装方法
+/**
+ * 定时器-标记定义
+ */
+common.TimerInfo=[],
+/**
+ * 定时器-标记赋值
+ * @param {*} id 
+ */
+common.TimeSign=function (id){
+    common.TimerInfo[id] = Date.parse(new Date())/1000;
+},
+
+/**
+ * 定时器-主程序
+ * @param {*} id 
+ * @param {*} diff 
+ */
+common.Timer= function(id,diff){
+    let t1 =Date.parse(new Date())/1000;
+    
+    if(t1-common.TimerInfo[id] >= diff){
+        return true;
+    }else{
+        return false;
+    }
+},
+//仿真随机带曲线滑动  
+//qx, qy, zx, zy, time 代表起点x,起点y,终点x,终点y,过程耗时单位毫秒
+common.swipeEx=function(qx, qy, zx, zy, time) {
+    var xxy = [time];
+    var point = [];
+    var dx0 = {
+        "x": qx,
+        "y": qy
+    };
+    var dx1 = {
+        "x": random(qx - 100, qx + 100),
+        "y": random(qy, qy + 50)
+    };
+    var dx2 = {
+        "x": random(zx - 100, zx + 100),
+        "y": random(zy, zy + 50),
+    };
+    var dx3 = {
+        "x": zx,
+        "y": zy
+    };
+    for (var i = 0; i < 4; i++) {
+
+        eval("point.push(dx" + i + ")");
+
+    };
+    for (let i = 0; i < 1; i += 0.08) {
+        xxyy = [parseInt(this.bezier_curves(point, i).x), parseInt(this.bezier_curves(point, i).y)]
+        xxy.push(xxyy);
+    }
+    gesture.apply(null, xxy);
+},
+common.bezier_curves=function(cp, t) {
+    cx = 3.0 * (cp[1].x - cp[0].x);
+    bx = 3.0 * (cp[2].x - cp[1].x) - cx;
+    ax = cp[3].x - cp[0].x - cx - bx;
+    cy = 3.0 * (cp[1].y - cp[0].y);
+    by = 3.0 * (cp[2].y - cp[1].y) - cy;
+    ay = cp[3].y - cp[0].y - cy - by;
+
+    tSquared = t * t;
+    tCubed = tSquared * t;
+    result = {
+        "x": 0,
+        "y": 0
+    };
+    result.x = (ax * tCubed) + (bx * tSquared) + (cx * t) + cp[0].x;
+    result.y = (ay * tCubed) + (by * tSquared) + (cy * t) + cp[0].y;
+    return result;
+},
+//向左滑动
+common.slideToLeft=function(){
+    common.swipeEx(device.width * 0.9, device.height * 0.5, device.width * 0.1,device.height * 0.5, 300);
+},
+//短滑动
+common.shortSlide=function() {
+    common.swipeEx(device.width * 0.5, device.height * 0.5, device.width * 0.5, device.height * 0.5 - 500, 300);
+},
+//底部短滑动
+common.bshortSlide=function() {
+    common.swipeEx(device.width * 0.5, device.height * 0.8, device.width * 0.5, device.height * 0.8 - 500, 300);
+},
+//滑动通用方法
+common.slide=function() {
+    common.swipeEx(device.width * 0.8, device.height * 0.6, device.width * 0.9, 0, 300)
+},
+/***区域点击 */
+common.rgClick=function(region){
+    if(click(random(region[0], region[0] + region[2]), random(region[1], region[1] + region[3]))){
+        return true;
+    }else{
+        return false;
+    }
+},
+/**
+ * 随机取指定长度的字符
+ * @param {*} len 
+ */
+common.randomString=function(len) {
+　　len = len || 32;
+　　var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';    /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
+　　var maxPos = $chars.length;
+　　var pwd = '';
+　　for (i = 0; i < len; i++) {
+　　　　pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+　　}
+　　return pwd;
+},
+common.randomNum=function(minNum,maxNum){
+    minNum = minNum/1000;
+    maxNum = maxNum/1000;
+    switch(arguments.length){ 
+    case 1:
+        return parseInt(Math.random()*minNum+1)*1000; 
+        break;
+    case 2: 
+        return parseInt(Math.random()*(maxNum-minNum+1)+minNum)*1000; 
+        break; 
+    default: 
+        return 0; 
+        break; 
+    } 
+},
+/**
+ * 点击第i个子节点num次
+ * @param {*} node 
+ * @param {*} i 
+ * @param {*} num 
+ */
+common.clickChildNum=function(node,i,num){
+    if(node){
+        let child = [node.child(i).bounds().centerX(),node.child(i).bounds().centerY(),100,100];
+        
+        for (let index = 0; index <= parseInt(num); index++) {
+            click(child[0],child[1]);
+            sleep(random(2000,3200));
+        }
+    }
+}
+var all_engines = engines.all();
+let myEngine = engines.myEngine();
+for (var i = 0; i < all_engines.length; i++) {
+    let engines_name = all_engines[i].getSource().toString();
+    if (engines_name != myEngine.getSource().toString()) {
+        console.log(engines_name)
+        all_engines[i].forceStop();
+    }
+};
+var dd_bb = getVerName("com.ss.android.ugc.aweme");
+var kk_bb = getVerName("com.smile.gifmaker");
+var hs_bb = getVerName("com.ss.android.ugc.live");
+var hy_bb = getVerName("com.duowan.kiwi");
+var ddjs_bb = getVerName("com.ss.android.ugc.aweme.lite");
+var 分辨率 = device.width + '×' + device.height;
+var is_load = false;
+var is_down = false;
+var is_ajax = false;
+var is_gj = false;
+var phone_id = 0;
+var phone_name = '';
+
+var dd_down_url = 'https://red-packet.oss-cn-beijing.aliyuncs.com/%E6%8A%96%E9%9F%B3V17.0.0.apk';
+var kk_down_url = 'https://red-packet.oss-cn-beijing.aliyuncs.com/%E5%BF%AB%E6%89%8Bv9.8.40.21868.apk';
+var hy_down_url = 'https://red-packet.oss-cn-beijing.aliyuncs.com/%E8%99%8E%E7%89%99%E7%9B%B4%E6%92%ADV9.5.1.apk';
+var hs_down_url = '';
+var ddjs_down_url = 'https://red-packet.oss-cn-beijing.aliyuncs.com/%E6%8A%96%E9%9F%B3%E6%9E%81%E9%80%9F%E7%89%88V15.9.0.apk';
+//长连接是否重连
+var re_connect = 0;
+//任务主线程
+var jobthreads = null;
+//疯点屏幕线程
+var click_thread = null;
+//疯狂滚屏线程
+var loop_thread = null;
+//弹窗线程
+var popup_thread = null;
+var check_isScreenOn = true; //检测屏幕是否处于亮屏状态 
+var is_do = 0;
+var 疯点屏幕 = 0;
+var 疯狂滚屏 = 0;
+var 其他任务 = 0;
+var jietu = 0
+var jtqx = 0
+var bigo进入直播间时间
+var floatythread = null;
+var getimei = getUniqueCode();
+var token;
+var phone = 0;
+var 设备型号 = device.model
+var mac地址 = device.getMacAddress()
+var ip地址
+
+var floatyPermission = getStorageData('local', "floatyPermission") ? getStorageData('local', "floatyPermission") : false;
+var websocketThread = null;
+var ws = null;
+var ws_time = null;
+
+//定义连续任务变量
+//dd福袋任务池
+var dd_fdlast_list = new Array();
+//dd直播任务池
+var dd_hot_list = new Array();
+//kk直播任务池
+var kk_hot_list = new Array();
+//缓存数组
+var in_array_list = new Array();
+
+
+var fw = null; //悬浮窗
+function float_window() {
+    if (fw == null) {
+        fw = floaty.rawWindow('<frame w="*" h="*" bg="#55ffffff">\
+                <vertical>\
+                    <button id="stop" text="欢迎使用' + myApp.app_name + '(' + phone_name + ')" w="*" h="40" textColor="red" bg="#55ffffff" paddingLeft="10dp" paddingRight="10dp"/>\
+                </vertical>\
+            </frame>\
+            ');
+        fw.exitOnClose();
+        setTimeout(function () {
+            fw.setSize(-2, -2);
+            fw.setPosition(1, device.height * 0.9);
+            fw.setTouchable(false);
+            //auto.setMode('fast');
+        }, 1000)
+    }
+}
+
+function 获取ip地址() {
+
+    let aaa = http.get("http://pv.sohu.com/cityjson?ie=utf-8").body.string()
+    aaa = aaa.substring(aaa.indexOf("= ") + 2, aaa.indexOf(";"))
+    aaa = JSON.parse(aaa);
+    return aaa.cip
+
+}
+
+
+try {
+    
+    var mainPage = {
+        
+        // 初始化首页布局
+        initLayout() {
+            var demo = '<drawer id="drawer">\
+                <vertical>\
+                    <appbar>\
+                        <toolbar id="toolbar" bg="#39748d" title="{{myApp.app_name}}"/>\
+                        <tabs id="tabs" bg="#39748d" />\
+                    </appbar>\
+                    <viewpager id="viewpager">\
+                        <frame>\
+                            <scroll>\
+                                <vertical>\
+                                    <linear orientation="vertical" id="r_autoService" margin="5 5"  >\
+                                        <card w="*" cardCornerRadius="13dp" cardElevation="1dp" foreground="?selectableItemBackground">\
+                                        <linear orientation="horizontal" margin="10 0 10 0">\
+                                            <Switch id="autoService" h="35" text="无障碍服务" checked="{{auto.service != null}}" padding="8 8 8 8" textSize="15sp" />\
+                                            <Switch id="floaty_button" h="35" text="悬浮窗权限" checked="{{floatyPermission}}" w="*" margin="35 0 0 0" />\
+                                        </linear>\
+                                        <text margin="18 30 0 0" text="小米手机请在权限管理开启后台弹出界面权限" textColor="red" />\
+                                        </card>\
+                                    </linear>\
+                                    <linear orientation="vertical" margin="10 5">\
+                                    <card w="*" h="100" >\
+                                    <frame  padding="0" >\
+                                        <vertical>\
+                                            <text textSize="16sp" textColor="red" text="说明："/>\
+                                            <text textSize="14sp" textColor="grey" text="   1:必须开启手机无障碍服务权限"/>\
+                                            <text textSize="14sp" textColor="grey" text="   2:进入无障碍后，找到{{myApp.app_name}}，然后勾选即可"/>\
+                                            <text textSize="14sp" textColor="grey" text="   3:必须开启{{myApp.app_name}}后台弹出界面(悬浮窗)权限，部分手机需开启后台管理(允许后台允许)权限"/>\
+                                        </vertical>\
+                                    </frame>\
+                                    </card>\
+                                    </linear>\
+                                    <card w="*" h="auto" margin="10 10" cardCornerRadius="2dp" cardElevation="1dp" gravity="center_vertical"  >\
+                                        <vertical padding="38 3" h="auto" bg="#39748d">\
+                                            <text margin="20 1" text="手机型号：{{device.model}}" textColor="#ffffff" w="auto" />\
+                                            <text margin="20 1" text="屏幕分辨率：{{分辨率}}" textColor="#ffffff" w="auto" />\
+                                            <text margin="20 1" text="Android版本号：{{device.release}}" textColor="#ffffff" w="auto" />\
+                                            <text margin="20 1" text="手机imei：{{getimei}}" textColor="#ffffff" w="auto" />\
+                                            <text margin="20 1" text="云控版本号：{{myApp.app_version}}" textColor="#ffffff" w="auto" />\
+                                            <text margin="20 1" text="DD版本:{{dd_bb}} 点击检测" textColor="#ffffff" w="auto" id="checkVersionDd" />\
+                                        </vertical>\
+                                    </card>\
+                                    <frame paddingTop="20"  gravity="center">\
+                                        <button id="start_work" text="开始挂机" textColor="#ffffff" textSize="18sp" h="50"  w="200" bg="#18bc9c"/>\
+                                    </frame>\
+                                    <frame paddingTop="20"  gravity="center">\
+                                        <button id="reload_work" text="更新7" textColor="#ffffff" textSize="18sp" h="50"  w="200" bg="#fe2c55"/>\
+                                    </frame>\
+                                </vertical>\
+                            </scroll>\
+                        </frame>\
+                        <frame>\
+                            <vertical>\
+                                <frame  padding="10">\
+                                    <vertical>\
+                                        <text textSize="16sp" textColor="black" text="激活码："/>\
+                                        <text textSize="14sp" textColor="grey" text="   1:一机一码，请保存好激活码"/>\
+                                        <text textSize="14sp" textColor="grey" text="   2:激活码永久有效，仅限定已绑定的设备使用"/>\
+                                        <text textSize="14sp" textColor="grey" text="   3:绑定后不可清除缓存，否则可能会造成激活状态失效"/>\
+                                        <text textSize="14sp" textColor="grey" text="   4:具体详情请点击帮助查看更多"/>\
+                                        <input id="activation_code" text=""/>\
+                                    </vertical>\
+                                </frame>\
+                                <frame  gravity="center">\
+                                    <button text="激活" id="activation" textColor="#ffffff" textSize="18sp" h="50"  w="280" bg="#39748d"/>\
+                                </frame>\
+                            </vertical>\
+                        </frame>\
+                        <frame padding="20"  gravity="center">\
+                            <text id="help" text=""  textSize="16sp"/>\
+                        </frame>\
+                    </viewpager>\
+                </vertical>\
+            </drawer>\
+            ';
+            ui.layout(demo);
+            // activity.setSupportActionBar(ui.toolbar);
+            //设置滑动页面的标题
+            ui.viewpager.setTitles(['控制台', "激活", "帮助"]);
+
+            //让滑动页面和标签栏联动
+            ui.tabs.setupWithViewPager(ui.viewpager);
+
+            ui.autoService.on("check", function (checked) {
+                if (checked && auto.service === null) {
+                    toastLog("请授权 " + myApp.app_name + " 无障碍权限");
+                    app.startActivity({
+                        action: "android.settings.ACCESSIBILITY_SETTINGS"
+                    });
+                }
+            });
+            ui.floaty_button.on("check", function (checked) {
+                if (!floaty.checkPermission()) {
+                    floaty.requestPermission();
+                }
+                setStorageData("local", "floatyPermission", true);
+            });
+
+            ui.emitter.on("resume", function () {
+                ui.autoService.checked = auto.service !== null;
+                if (auto.service === null) {
+                    toastLog("未开启无障碍")
+                }
+            });
+            //获取缓存的激活码
+            var code = getStorageData("smx", "code")
+            if (!code || code === null || code === undefined) {
+            } else {
+                ui.run(() => {
+                    ui.activation_code.setText(code);
+                })
+            }
+            //激活码激活
+            ui.activation.click(function () {
+                //通过getText()获取输入的内容
+                var activation_code = ui.activation_code.text();
+                if (!activation_code) {
+                    return toastLog("激活码不能为空!")
+                }
+                setStorageData("smx", "code", activation_code);
+
+                try {
+                    var res = http.get(myApp.baseUrl + "/api/index/activation?imei=" + getUniqueCode() + "&acode=" + activation_code);
+                    console.log(myApp.baseUrl + "/api/index/activation?imei=" + getUniqueCode() + "&acode=" + activation_code)
+                    if (res.statusCode == 200) {
+                        let resJson = res.body.json();
+                        // 激活失败
+                        if (resJson.code != 1) {
+                            return toastLog(resJson.msg);
+                        }
+                        // 把激活码保存在本地
+                        toastLog("激活成功");
+                        getIndex();
+                    } else {
+                        toastLog("网络异常1");
+                    }
+                } catch (e) {
+                    toastLog("网络异常2");
+                }
+            });
+
+            //开始挂机
+            ui.start_work.click(function () {
+                //判断挂机
+                if (is_gj) {
+                    is_gj = false;
+                    toastLog("已取消挂机")
+                    if (jobthreads) {
+                        jobthreads.interrupt()
+                    }
+                    if (ws_time && ws_time != '' && ws_time != null) {
+                        clearInterval(ws_time);
+                        ws_time = null;
+                    }
+                    if (ws) {
+                        console.log("关闭ws")
+                        ws.close(1000, null);
+                        ws = null;
+                    }
+                    ui.run(() => {
+                        ui.start_work.setText("开始挂机")
+                    })
+                    return;
+                }
+                if (isNetworking()) {
+                    //log("网络正常");
+                } else {
+                    alert("网络异常");
+                    return;
+                }
+                if (!auto.service || auto.service == null) {
+                    app.startActivity({
+                        action: "android.settings.ACCESSIBILITY_SETTINGS"
+                    });
+                    return toastLog("请先开启无障碍服务！");
+                }
+                //自检
+
+
+
+
+                toastLog("正在连接服务器...")
+                is_gj = true;
+
+                setTimeout(function () {
+                    if (is_gj == true) {
+                        start_websocket();
+                    }
+                }, 1000);
+                ui.run(() => {
+                    ui.start_work.setText("正在挂机")
+                })
+                float_window();
+            })
+
+             //Dy更新检查
+            ui.checkVersionDd.click(function () {
+                    if (dd_bb != myApp.dy_version) {
+                        submitTask();
+                        alert("抖音版本不正确,点击下载");
+                        app.openUrl(dd_down_url);
+                        return;
+                    }else{
+                        submitTask();
+                        alert("抖音版本正确，请挂机操作。");
+                        return;
+                    }
+            })
+            //  //Kk更新检查
+            // ui.checkVersionKk.click(function () {
+            //         if (kk_bb != myApp.ks_version) {
+            //             submitTask();
+            //             alert("快手版本不正确,点击下载");
+            //             app.openUrl(kk_down_url);
+            //             return;
+            //         }else{
+            //             submitTask();
+            //             alert("快手版本正确，请挂机操作。");
+            //             return;
+            //         }
+            // })
+            // ui.reload_work.visibility = 8;
+            ui.reload_work.click(function () {
+                if (is_gj) {
+                    toastLog("请先停止挂机");
+                    return; common
+                }
+                threads.shutDownAll();
+                if (ws) {
+                    ws.close(1000, null);
+                }
+                if (ws_time && ws_time != '' && ws_time != null) {
+                    clearInterval(ws_time);
+                    ws_time = null;
+                }
+                let myEngine = engines.myEngine();
+                threads.start(function () {
+                    let host = myApp.baseUrl + "/code.js?t=" + new Date().getTime();
+                    let res = http.get(host).body.string();
+                    let codepath = engines.myEngine().cwd() + "/code.js";
+                    files.write(codepath, res);
+                    engines.execScriptFile(codepath);
+                    myEngine.forceStop();
+                })
+            })
+        },
+            //显示登录界面
+        showLoginUI() {
+            ui.layout(
+                <frame bg="#E6E6F2">
+                <vertical h="auto" align="center" margin="50 50">
+                <linear  gravity="center">
+                    <text textStyle="italic" size="17">DSG CLOUD</text>
+                </linear>
+                <linear  gravity="center">
+                    <img src="@drawable/ic_cloud_queue_black_48dp" w="60" h="120" margin="12" bg="?selectableItemBackgroundBorderless"/>
+                </linear>
+                <linear  gravity="center">
+                    <text w="56" gravity="center" color="#111111" size="16">手机号</text>
+                    <input id="name" w="130" h="40"/>
+                </linear>
+                <linear  gravity="center">
+                    <text w="56" gravity="center" color="#111111" size="16">密码</text>
+                    <input id="password" w="130" h="40" password="true"/>
+                </linear>
+                <linear  gravity="center">
+                    <img src="@drawable/ic_cloud_queue_black_48dp" id="codeimg" w="80" h="80" bg="?selectableItemBackgroundBorderless" />
+                    <input id="code" w="130" h="40" hint="请输入验证码"/>
+                    <input id="msg" w="130" h="40" visibility="gone"/>
+                </linear>
+                <linear gravity="center">
+                    <button id="login" text="登陆" style="Widget.AppCompat.Button.Borderless.Colored"/>
+                    <button id="register" text="注册" style="Widget.AppCompat.Button.Borderless.Colored"/>
+                </linear>
+                <linear gravity="center" margin="0 20">
+                    <text autoLink="web" text="官网: http://www.baidu.com "/>
+                </linear>
+                </vertical>
+            </frame>
+            );
+            ui.login.on("click", () => {
+                var a = ui.name.text();var j = { 'phone': a,'password': ui.password.text(),'code':ui.code.text(),'time':ui.msg.text(),'remember':false}
+                var res = http.post(myApp.baseUrl + '/login', j );
+                    phone = a;
+                 console.log(ui.name.text());
+                if(res.statusCode == 200){
+                    let resJson = res.body.json();token=resJson.token;
+                    if(resJson.code==0){
+                        this.initLayout();
+                    }else{
+                        toastLog(resJson.msg);
+                    }
+                }
+            });
+            ui.codeimg.on("click", () => {
+                http.get(myApp.baseUrl + "/code", {}, (res, err) => {
+           
+                    if (err) {
+                        return;
+                    }
+                    if (res.statusCode == 200) {
+                        let resJson = res.body.json();
+                        if (resJson.code == 0) {
+                            ui.run(()=>{
+                                ui.codeimg.attr("src",resJson.data);
+                                ui.msg.setText(resJson.msg);
+                            })
+                        }
+                    }
+                })
+            })
+            //ui.register.on("click", () => showRegisterUI());
+        },
+        initApp() {
+            if (ws) {
+                ws.close(1000, null);
+            }
+            if (ws_time && ws_time != '' && ws_time != null) {
+                clearInterval(ws_time);
+                ws_time = null;
+            }
+            threads.shutDownAll();
+            this.showLoginUI();
+            getIndex();console.show();
+            // 退出应用对话框 todo 返回 
+            ui.emitter.on("back_pressed", function (e) {
+                e.consumed = true;
+            });
+        }
+    }
+    mainPage.initApp();
+} catch (error) {
+    console.error("====捕获app全局异常====: ", error);
+}
+
+function 获取基本信息() {
+    激活key = getStorageData("smx", "code")
+    // log("http://yunkong.haohaokeji.com.cn/api/index/BindCode?code=" + 激活key + "&macip=" + mac地址 + "&phonetype=" + 设备型号)
+    log(http.get(myApp.baseUrl + "/api/index/BindCode?code=" + 激活key + "&macip=" + mac地址 + "&phonetype=" + 设备型号))
+}
+function 自检(){
+    toastLog("正在开始电量检测");
+    let battery = device.getBattery();
+    let isCharging = device.isCharging();
+    if(battery<30&&!isCharging){
+        toastLog("电量少于百分之30,请连接充电器重试！");
+        return false;
+    }
+    sleep(1000);
+    toastLog("正在设置屏幕常亮!")
+    device.keepScreenDim();
+    sleep(1000);
+    toastLog("正在检测DD版本!");
+    if (dd_bb != myApp.dy_version) {
+        toastLog("DD版本不正确,点击下载");
+        app.openUrl(dd_down_url);
+        return false;
+    }
+    toastLog("正在进行账号检测，请勿操作手机！")
+    backDdToIndex();
+    sleep(500,1200);
+    while(true) {
+        sleep(1000);
+        let b = text("开始检测").findOne(1000);
+        if(b){
+            b.click();
+            sleep(10000);
+            break;
+        }
+        if(随机点击(text,"帐号检测")){
+            continue;
+        }
+        if(随机点击(text,"创作者服务中心")){
+            continue;
+        }
+        let a = className("android.widget.RelativeLayout").visibleToUser(true).depth(13).drawingOrder(10).indexInParent(4).findOne(1000);
+        if(a){
+            a.click();
+            continue;
+        }
+        let c = textMatches(/.*登录.*/).findOne(1000);
+        if(c){
+            toastLog("账号未登录，请先登录！");
+            return false;
+        }
+        if(随机点击(text,"我")){
+            continue;
+        }
+    }
+    let b = text("开始检测").findOne(3000);
+    if(!b){
+        let c = textMatches(/.*状态正常.*/).findOne(2000);
+        if(c){
+            toastLog("自检通过！");
+            return true;
+        }else{
+            toastLog("账号异常！如有问题，请联系客服！");
+            return false;
+        }
+    }else{
+        toastLog("发生异常,重新检测!");
+        自检();
+    }
+}
+
+
+
+//开始长连接
+function start_websocket() {
+
+    if (ws) {
+        ws.close(1000, null);
+    }
+    if (ws_time && ws_time != '' && ws_time != null) {
+        clearInterval(ws_time);
+        ws_time = null;
+    }
+    AdminstopTask();
+    device.wakeUpIfNeeded();
+    device.keepScreenOn(3600 * 24 * 1000 * 10);
+    if (!is_gj) {
+        if (jobthreads) {
+            jobthreads.interrupt()
+        }
+        ui.run(() => {
+            ui.start_work.setText("开始挂机")
+        })
+        AdminstopTask();
+        return;
+    }
+    ws = web.newWebSocket(myApp.wbsurl, {
+        eventThread: 'this'
+    });
+    // 监听他的各种事件
+    ws.on("open", (res, ws) => {
+        re_connect = 0;
+        log("WebSocket已连接");
+        // ip地址 = 获取ip地址()
+        console.log('open:{"type":"ping","imei":"' + getimei + '"}');
+        // console.log('open:{"type":"login","imei":"' + getimei + '","sbxh":"' + 设备型号 + '""mac":"' + mac地址 + '"}');
+        //ws.send('{"type":"login","imei":"' + getimei + '"}');
+        ws.send('{"type":"login","imei":"' + getimei + '","ip":"' + 获取ip地址() + '","phonetype":"' + 设备型号 + '","token":"' + token + '","phone":"' + phone + '","macip":"' + mac地址 + '"}');
+        获取基本信息()
+    }).on("failure", (err, res, ws) => {
+        console.log("failure")
+        toastLog("长连接失败");
+        is_gj = false;
+        ui.run(() => {
+            ui.start_work.setText("开始挂机")
+        })
+        AdminstopTask();
+        ws.close(1000, null);
+        if (ws_time && ws_time != '' && ws_time != null) {
+            clearInterval(ws_time);
+            ws_time = null;
+        }
+        toastLog("10秒后重新连接");
+        setTimeout(function () {
+            toastLog("正在重新连接");
+            is_gj = true;
+            ui.run(() => {
+                ui.start_work.setText("正在挂机")
+            })
+            setTimeout(function () {
+                re_connect = 1;
+                start_websocket();
+            }, 5000)
+        }, 30000)
+        return;
+    }).on("closing", (code, reason, ws) => {
+
+    }).on("text", (text, ws) => {
+        console.log("长连接文本消息:" + text)
+        text = JSON.parse(text);
+        if (text.type == 'login') {
+            if (text.code == 1) {
+                toastLog(text.msg);
+                ws_time = setInterval(function () {
+                    if (ws && ws != '' && ws != null) {
+                        ws.send('{"type":"ping","imei":"' + getimei + '"}')
+                    }
+                }, 20000)
+            } else if (text.code == 0) {
+                console.log(text.msg)
+                toastLog(text.msg);
+                setTimeout(function () {
+                    ws.close(1000, null);
+                }, 1500)
+            }
+        }
+        // log(text)
+    }).on("binary", (bytes, ws) => {
+        console.info("收到二进制消息:");
+    }).on("closed", (code, reason, ws) => {
+        console.log("closing: WebSocket已关闭");
+        toastLog("连接已关闭");
+        is_gj = false;
+        ui.run(() => {
+            ui.start_work.setText("开始挂机")
+        });
+        AdminstopTask();
+        ws.close(1000, null);
+        if (ws_time && ws_time != '' && ws_time != null) {
+            clearInterval(ws_time);
+            ws_time = null;
+        }
+        if (re_connect == 1) {
+            start_websocket();
+        }
+        return;
+    });
+}
+
+function 节点坐标点击(参数) {
+    let a = 参数
+    if (a) {
+        x1 = a.bounds().left
+        y1 = a.bounds().top
+        x2 = a.bounds().right
+        y2 = a.bounds().bottom
+        xx = random(x2, x1)
+        yy = random(y2, y1)
+        click(xx, yy)
+        sleep(2000)
+        return true
+    }
+    return false
+}
+
+
+
+function 取随机参数(参数) {
+    let a = 参数
+    let b = a.split("&")
+    let c = random(0, b.length - 1)
+    return b[c]
+}
+
+function 输入内容(属性, 值, 内容) {
+    let a
+
+    if (属性 && 值) {
+        a = 属性(值).visibleToUser().findOnce()
+    }
+
+    if (!属性 && 值) {
+        a = 值
+    }
+
+    if (a) {
+        if (a.setText(内容)) {
+            sleep(2000)
+            return true
+        }
+    }
+    return false
+}
+
+function 返回text值(属性, 值) {
+    let a
+
+    if (属性 && 值) {
+        a = 属性(值).visibleToUser().findOnce()
+    }
+
+    if (!属性 && 值) {
+        a = 值
+    }
+
+    if (a) {
+
+        return a.text()
+    }
+    return false
+}
+
+
+function 返回到指定界面(属性, 值) {
+
+    for (let index = 0; index < 10; index++) {
+        let fanhuicole = 属性(值).visibleToUser().findOnce()
+        if (fanhuicole) {
+            sleep(1000)
+            return true
+        } else {
+            back()
+            sleep(2000)
+        }
+    }
+    return false
+}
+
+
+function 判断界面(属性, 值) {
+    let a
+
+    if (属性 && 值) {
+        a = 属性(值).visibleToUser().findOnce()
+    }
+
+    if (!属性 && 值) {
+        a = 值
+    }
+
+    if (a) {
+
+        return true
+    }
+    return false
+}
+
+//============================================手机管理========================================//
+
+//屏幕点击
+function 屏幕点击(data){
+    let 点击内容 = data.content
+    if (data.type == 1) {
+        if (判断界面(text, 点击内容)) {
+            toastLog("开始点击" + 点击内容)
+            随机点击(text, 点击内容)
+            sleep(2000)
+        }
+        if (!判断界面(text, 点击内容)) {
+            toastLog("开始点击" + 点击内容)
+            随机点击(desc, 点击内容)
+            sleep(2000)
+        }
+    }
+    if (data.type == 2) {
+        if (判断界面(textContains, 点击内容)) {
+            toastLog("开始点击" + 点击内容)
+            随机点击(textContains, 点击内容)
+            sleep(2000)
+        }
+        if (!判断界面(textContains, 点击内容)) {
+            toastLog("开始点击" + 点击内容)
+            随机点击(descContains, 点击内容)
+            sleep(2000)
+        }
+    }
+}
+
+// 写入通讯录
+function 写入通讯录(data) {
+    var 名称 = data.name
+    var 手机号 = data.mobile
+    var 名称分割 = 名称.split("&")
+    var 手机号分割 = 手机号.split("&")
+    var 操作数量 = data.num2
+
+    toastLog("kaishi")
+    log(名称)
+    log(手机号)
+    for (var iix = 0; iix < 操作数量; iix++) {
+        toastLog("开始写入第" + iix + "个通讯录")
+        写入通讯录单个联系人(手机号分割[iix], 名称分割[iix])
+        sleep(2000)
+        
+    }
+    
+}
+
+function 写入通讯录单个联系人(phone, name) {
+    var a = new android.content.ContentValues();
+    a.put("account_type", android.accounts.AccountManager.KEY_ACCOUNT_TYPE);
+    a.put("account_name", android.accounts.AccountManager.KEY_ACCOUNT_NAME);
+
+    var rawContactUri = context.getContentResolver().insert(android.provider.ContactsContract.RawContacts.CONTENT_URI, a);
+    var rawContactId = android.content.ContentUris.parseId(rawContactUri)
+
+    var b = new android.content.ContentValues();
+    b['put(java.lang.String,java.lang.Long)']("raw_contact_id", rawContactId);
+    b.put("mimetype", "vnd.android.cursor.item/name");
+    b.put("data1", name);
+    context.getContentResolver().insert(android.provider.ContactsContract.Data.CONTENT_URI, b);
+
+    var c = new android.content.ContentValues();
+    c['put(java.lang.String,java.lang.Long)']("raw_contact_id", rawContactId);
+    c.put("mimetype", "vnd.android.cursor.item/phone_v2");
+    c.put("data1", phone);
+    c["put(java.lang.String,java.lang.Integer)"]("data2", 2);
+    context.getContentResolver().insert(android.provider.ContactsContract.Data.CONTENT_URI, c);
+}
+
+
+
+// 清空通讯录所有联系人
+function 清空通讯录所有联系人(data) {
+    if(data.type == 1) {
+        toastLog("正在清空通讯录所有联系人")
+        var ContentProviderOperation = android.content.ContentProviderOperation;
+        var rawUri = android.provider.ContactsContract.Data.CONTENT_URI.buildUpon().appendQueryParameter("caller_is_syncadapter", "true").build();
+        var ops = new java.util.ArrayList();
+        var array = java.lang.reflect.Array.newInstance(java.lang.String, 1);
+        array[0] = "-1";
+        ops.add(ContentProviderOperation.newDelete(android.provider.ContactsContract.Data.CONTENT_URI).withSelection("_id>? ", array).build()) //sets deleted flag to 1
+        ops.add(ContentProviderOperation.newDelete(rawUri).withSelection("_id>? ", array).build()) //erases
+        context.getContentResolver().applyBatch("com.android.contacts", ops);
+    }
+}
+
+//  屏幕解锁
+function 屏幕解锁(data) {
+    if (data.type == 1) {
+        toastLog("开始解锁")
+        device.wakeUp()
+        sleep(1000);
+        // swipe(500,2000,500,1000,201);
+        swipe(device.width/2,device.height/8*7 , device.width/2, device.height/9, 1000)
+        swipe(500,2000,500,1000,201);
+        // gesture(swipe_time, [540, HEIGHT * 0.9], [540, HEIGHT * 0.1]); //模拟手势
+        sleep(1500)
+
+    }
+    if (data.type == 2) {
+        toastLog("未开发")
+    }
+
+}
+
+//停止APP
+function 停止APP1(data) {
+    recents();
+    sleep(1000);
+
+    if(descContains(data.name).exists()){
+        var a = desc(data.name + ",未加锁").findOne().bounds();
+        swipe(a.centerX(),a.centerY(),device.width,a.centerY(),300);
+        return
+    }
+    sleep(1000);
+    home();
+    sleep();
+
+}
+
+//app应用关闭
+function 停止APP(data) {
+    var packageName = app.getPackageName(data.name);
+    app.openAppSetting(packageName);
+    sleep(random(1000, 2000));
+    text(app.getAppName(packageName)).waitFor();
+    let is_sure = textMatches(/(.*强.*|.*停.*|.*结.*|.*行.*)/).findOne();
+    if (is_sure.enabled()) {
+        textMatches(/(.*强.*|.*停.*|.*结.*|.*行.*)/).findOne().click();
+        textMatches(/(.*确.*|.*定.*)/).findOne().click();
+        log(app.getAppName(packageName) + "应用已被关闭");
+        sleep(random(1000, 2000));
+        back();
+    } else {
+        log(app.getAppName(packageName) + "应用不能被正常关闭或不在后台运行");
+        back();
+        sleep(random(1000, 2000));
+    }
+}
+
+
+
+
+//设置音量
+function 设置音量(data) {
+    toastLog("开始设置音量")
+    device.setNotificationVolume(Number(data.number))
+}
+
+//设置屏幕亮度
+function 设置屏幕亮度(data) {
+    toastLog("开始设置屏幕亮度")
+    device.setBrightnessMode(0)
+    device.setBrightness(Number(data.number))
+}
+
+//设置屏幕亮度
+function 设置屏幕亮度(data) {
+    toastLog("开始设置屏幕亮度")
+    device.setBrightnessMode(0)
+    device.setBrightness(Number(data.number))
+}
+
+//关机重启
+function 关机重启(data) {
+    toastLog("正在关机或者重启")
+    powerDialog()
+    sleep(5000)
+    if (data.type == 1) {
+        随机点击(text, "关机")
+    }
+    if (data.type == 2) {
+        随机点击(text, "重启")
+    }
+}
+
+//http访问
+function http访问(链接) {
+    http.__okhttp__.setTimeout(10000);
+    while (true) {
+        try {
+            // 捕捉所有异常
+            res = http.get(链接, {
+                headers: {
+                    'Accept-Language': 'zh-cn,zh;q=0.5',
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Mobile Safari/537.36'
+                }
+            })
+            if (res.statusCode == 200) {
+                var 返回值 = String(res.url)
+                return 返回值
+            } else {
+                log("请求失败:" + res.statusMessage);
+            }
+        } catch (e) {
+            // 出现异常返回null
+
+        }
+        sleep(1000)
+    }
+}
+
+//http访问
+function http访问json(链接) {
+    http.__okhttp__.setTimeout(10000);
+    while (true) {
+        try {
+            // 捕捉所有异常
+            res = http.get(链接)
+            if (res.statusCode == 200) {
+                var 返回值 = res.body.json()
+                return 返回值
+            } else {
+                log("请求失败:" + res.statusMessage);
+            }
+        } catch (e) {
+            // 出现异常返回null
+            log(e)
+        }
+        sleep(1000)
+    }
+}
+
+
+function 随机点击(属性, 值) {
+    let a
+
+    if (属性 && 值) {
+        a = 属性(值).visibleToUser().findOnce()
+    }
+
+    if (!属性 && 值) {
+        a = 值
+    }
+
+    if (a) {
+        x1 = a.bounds().left + 10
+        y1 = a.bounds().top + 10
+        x2 = a.bounds().right - 10
+        y2 = a.bounds().bottom - 10
+        xx = random(x2, x1)
+        yy = random(y2, y1)
+        click(xx, yy)
+        sleep(3000)
+        return true
+    }
+    return false
+}
+
+//===================公共函数========================//
+//开始任务
+function startTask() {
+    if (jobthreads) {
+        jobthreads.interrupt();
+    }
+    if (click_thread) {
+        click_thread.interrupt();
+    }
+    if (loop_thread) {
+        loop_thread.interrupt();
+    }
+    if (popup_thread) {
+        popup_thread.interrupt();
+    }
+    threads.shutDownAll();
+}
+//结束任务
+function overTask() {
+    console.log("发送任务完成指令")
+    submitTask();
+    if (click_thread) {
+        click_thread.interrupt();
+    }
+    if (loop_thread) {
+        loop_thread.interrupt();
+    }
+    if (popup_thread) {
+        popup_thread.interrupt();
+    }
+    let currentpname = currentPackage();
+    if (currentpname == 'com.ss.android.ugc.aweme') {
+        sleep(random(2000, 3000));
+        for (var i = 0; i < 10; i++) {
+            if (currentPackage() == 'com.ss.android.ugc.aweme') {
+                back();
+                sleep(300);
+            } else {
+                i = 10;
+            }
+        }
+    } else if (currentpname == 'com.smile.gifmaker') {
+        for (var i = 0; i < 5; i++) {
+            if (id("exit_btn").text("退出").visibleToUser().exists()) {
+                console.log("点击关闭")
+                id("exit_btn").findOnce().click();
+                i = 5;
+                sleep(1000);
+            } else {
+                back();
+                sleep(1000);
+            }
+        }
+        sleep(random(2000, 3000));
+        for (var i = 0; i < 10; i++) {
+            if (currentPackage() == 'com.smile.gifmaker') {
+                back();
+                sleep(300);
+            } else {
+                i = 10;
+            }
+        }
+    }
+    if (jobthreads) {
+        home();
+        try {
+            shell('am force-stop com.ss.android.ugc.aweme', true);
+            shell('am force-stop com.smile.gifmaker', true);
+        } catch (e) {
+
+        }
+        jobthreads.interrupt();
+    } else {
+        home();
+        try {
+            shell('am force-stop com.ss.android.ugc.aweme', true);
+            shell('am force-stop com.smile.gifmaker', true);
+        } catch (e) {
+
+        }
+    }
+    threads.shutDownAll();
+}
+//结束任务
+function AdminstopTask() {
+    if (click_thread) {
+        click_thread.interrupt();
+    }
+    if (loop_thread) {
+        loop_thread.interrupt();
+    }
+    if (popup_thread) {
+        popup_thread.interrupt();
+    }
+    if (jobthreads) {
+        try {
+            shell('am force-stop com.ss.android.ugc.aweme', true);
+            shell('am force-stop com.smile.gifmaker', true);
+        } catch (e) {
+
+        }
+        jobthreads.interrupt();
+    } else {
+        try {
+            shell('am force-stop com.ss.android.ugc.aweme', true);
+            shell('am force-stop com.smile.gifmaker', true);
+        } catch (e) {
+
+        }
+    }
+    threads.shutDownAll();
+}
+//回到Dd首页
+function backDdToIndex() {
+    launchApp("抖音");
+    let 抖音 = text("抖音").findOnce()
+    if (抖音) {
+        抖音.click()
+    }
+    let 抖音2 = desc("抖音").findOnce()
+    if (抖音2) {
+        抖音2.click()
+    }
+    waitForPackage("com.ss.android.ugc.aweme");
+    sleep(random(2000, 3000));
+    for (let j = 0; j < 10; j++) {
+        if (!text("首页").visibleToUser().exists()) {  //修  评论控件
+            back();
+            sleep(random(500,1000));
+        } else {
+            随机点击(text,"首页");
+            j = 10;
+        }
+    }
+}
+//回到Kk首页
+function backKkToIndex() {
+    launchApp("快手");
+    waitForPackage("com.smile.gifmaker");
+    sleep(random(2000, 3000));
+    for (let j = 0; j < 10; j++) {
+        if (currentActivity() != 'com.yxcorp.gifshow.HomeActivity') {
+            back();
+            sleep(1000);
+        } else {
+            j = 10;
+        }
+    }
+    if (currentActivity() != 'com.yxcorp.gifshow.HomeActivity') {
+        launchApp("快手");
+        waitForPackage("com.yxcorp.gifshow.HomeActivity");
+        sleep(random(2000, 3000));
+    }
+}
+//获取评论
+function setWords(id) {
+    let words = new Array();
+    words.visit = new Array();
+    words.turn = new Array();
+    words.comment = new Array();
+    words.letter = new Array();
+    words.live = new Array();
+    words.onrand = 0;
+    if (!id) {
+        return words;
+    }
+    let res = http.post(myApp.baseUrl + '/api/index/getWords', { 'id': id });
+    if (res.statusCode == 200) {
+        res = res.body.json();
+        if (res.code == 1) {
+            words.visit = res.data.visit;
+            words.turn = res.data.turn;
+            words.comment = res.data.comment;
+            words.letter = res.data.letter;
+            words.live = res.data.live;
+            words.onrand = res.data.onrand;
+        }
+    }
+    return words;
+}
+//单字输入
+function setTextOne(word) {
+    if (word.length > 20) {
+        setText(0, word);
+    } else {
+        for (var i = 0; i < word.length; i++) {
+            setText(0, word.substring(0, i + 1));
+            sleep(random(106, 155));
+        }
+    }
+}
+function getQueryVariable(query, variable) {
+    var vars = query.split("&");
+    for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split("=");
+        if (pair[0] == variable) {
+            return pair[1];
+        }
+    }
+    return (false);
+}
+// 获取首页数据
+function getIndex() {
+    //获取设备名称
+    // http.get(myApp.baseUrl + "/api/index/getphone?&imei=" + getUniqueCode(), {}, (res, err) => {
+    //     if (err) {
+    //         return;
+    //     }
+    //     if (res.statusCode == 200) {
+    //         let resJson = res.body.json();
+    //         // 获取失败
+    //         if (resJson.code == 1) {
+    //             phone_id = resJson.data.id
+    //             phone_name = resJson.data.name;
+    //             dd_down_url = resJson.data.dd_down_url;
+    //             kk_down_url = resJson.data.kk_down_url;
+    //             threads.start(function () {
+    //                 ui.run(() => {
+    //                     ui.toolbar.setTitle(myApp.app_name + "   设备号(" + resJson.data.name + ")");
+    //                 })
+    //             })
+    //         }
+    //     }
+    // })
+    // //获取帮助信息
+    // http.get(myApp.baseUrl + "/api/index/getHelp?&imei=" + getUniqueCode(), {}, (res, err) => {
+    //     if (err) {
+    //         return;
+    //     }
+    //     if (res.statusCode == 200) {
+    //         let resJson = res.body.json();
+    //         // 获取失败
+    //         if (resJson.code == 1) {
+    //             ui.run(() => {
+    //                 ui.help.setText(resJson.data);
+    //             })
+    //         }
+    //     }
+    // })
+    //获取验证码
+    http.get(myApp.baseUrl + "/code", {}, (res, err) => {
+        if (err) {
+            return;
+        }
+        if (res.statusCode == 200) {
+            let resJson = res.body.json();
+            if (resJson.code == 0) {
+                ui.run(()=>{
+                    ui.codeimg.attr("src",resJson.data);
+                    ui.msg.setText(resJson.msg);
+                })
+            }
+        }
+    })
+}
+// 获取imei+mac
+function getUniqueCode() {
+    let localMac = getStorageData("MAC", "mac");
+    if (localMac) {
+        return localMac;
+    } else {
+        var date = new Date();
+        var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';    /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
+        var maxPos = $chars.length;
+        var pwd = '';
+        for (i = 0; i < 12; i++) {
+            pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+        }
+        setStorageData("MAC", "mac", date.getYear() + "-" + date.getMonth() + '-' + date.getDate() + pwd);
+        return pwd;
+    }
+}
+// 随机点 x,y为需要点击的坐标，offset为偏移量 单位是像素点
+function clickRandom(x, y, offsetX, offsetY) {
+    if (!x || !y) {
+        throw new Error("点击的坐标x或y为空");
+    }
+    offsetX || (offsetX = 0)
+    offsetY || (offsetY = 0)
+    return click(random(x - offsetX, x + offsetX), random(y - offsetY, y + offsetY));
+}
+// rect: bounds的返回值， offset： 偏移量 单位是像素点
+function clickBoundsRandom(rect, offsetX, offsetY) {
+    if (!rect) {
+        throw new Error("clickBoundsRandom(): rect 不存在")
+    }
+    let centerX = rect.centerX(),
+        centerY = rect.centerY()
+    if (centerX < 0 || centerY < 0) {
+        throw new Error("clickBoundsRandom(): 中心点xy坐标小于零")
+    }
+    offsetX || (offsetX = 0)
+    offsetY || (offsetY = 0)
+    return clickRandom(centerX, centerY, offsetX, offsetY);
+}
+//保存本地数据
+function setStorageData(name, key, value) {
+    const storage = storages.create(name);  //创建storage对象
+    storage.put(key, value);
+    return storage;
+};
+//读取本地数据
+function getStorageData(name, key) {
+    const storage = storages.create(name);  //创建storage对象
+    return storage.get(key, null);
+};
+// 是否包含指定key
+function storageContainsKey(name, key) {
+    const storage = storages.create(name);
+    return storage.contains(key);
+}
+//删除本地数据
+function delStorageData(name, key) {
+    const storage = storages.create(name);  //创建storage对象
+    if (storage.contains(key)) {
+        storage.remove(key);
+    };
+    return storage;
+};
+function md5(string) {
+    string = string + '大哥，轻点';
+    return java.math.BigInteger(1, java.security.MessageDigest.getInstance("MD5").digest(java.lang.String(string).getBytes())).toString(16);
+};
+
+//检测Bigo弹窗
+function closebigoPopup() {
+    popup_thread = threads.start(function () {
+        common.TimeSign(500006);
+        while (true) {
+            sleep(5000);
+            // bigo live 
+            // if (判断界面(id, "guide_send_button")) {
+            //     back()
+            //     sleep(2000)
+            // }
+
+            if (判断界面(textContains, "您已收到免费礼物")) {
+                back()
+                sleep(2000)
+            }
+
+            if (判断界面(text, "限时折扣礼物")) {
+                back()
+                sleep(2000)
+            }
+
+            if (判断界面(text, "追踪订阅开播通知")) {
+                back()
+                sleep(2000)
+            }
+
+            if (判断界面(textContains, "秒并获得冻结的钻石")) {
+                随机点击(id, "icon_close")
+                sleep(2000)
+            }
+            if (判断界面(text, "解冻钻石")) {
+                随机点击(id, "icon_close")
+                sleep(2000)
+            }
+
+            if (判断界面(textContains, "你今天在BIGO LIVE已经观看超过")) {
+                随机点击(text, "下次")
+                sleep(2000)
+            }
+            if (判断界面(textContains, "LIVE已经观看超过")) {
+                随机点击(text, "下次")
+                sleep(2000)
+            }
+
+            if (判断界面(textContains, "使用BIGO LIVE时，您是否遇到什么问题")) {
+                back()
+                sleep(2000)
+            }
+
+            if (判断界面(text, "幸运卡片")) {
+                back()
+                sleep(2000)
+            }
+
+            // if (判断界面(id, "common_btn_text")) {
+            //     back()
+            //     sleep(2000)
+            // }
+            // bigo live 
+            if (common.Timer(500006, bigo进入直播间时间 * 60)) {
+                overTask()
+            }
+
+        }
+    });
+}
+
+//检测KK极速版弹窗
+function closeKKjisuban() {
+    随机点击(id, "icon_close") //快手极速版
+    随机点击(id, "close")    //快手极速版
+}
+//检测DD极速版弹窗
+function closeKKjisuban() {
+    随机点击(id, "bai")  //抖音极速版
+    随机点击(id, "b_d")  //抖音极速版
+    随机点击(id, "drq")  //抖音极速版
+}
+//检测DD弹窗
+function closeDdPopup() {
+    popup_thread = threads.start(function () {
+        while (true) {
+            sleep(5000);
+            随机点击(textContains, "参与福袋")
+            随机点击(descContains, "参与福袋")
+            随机点击(text, "同意并发送")
+            随机点击(text, "暂不使用")
+            if (textContains("收下12个红包").visibleToUser().findOnce()) { //抖音极速版
+                随机点击(id, "av0")
+            }
+            if(id("i_3").exists()){ //悬浮窗提醒
+                id("i_0").findOne().click()
+                sleep(1000)
+  
+            }
+            // if (text('朋友推荐').exists()) {
+            //     back()
+            //     sleep(1000)
+            // };
+            if (text('关闭动画').exists()) {
+                back()
+                sleep(1000)
+            };
+            if (text('授权提示').exists()) {
+                let yes = text('同意授权').findOnce();
+                if (yes) {
+                    yes.click();
+                }
+            };
+            if (text('好友推荐').exists()) {
+                let fds = id('com.ss.android.ugc.aweme:id/xg').findOnce();
+                if (fds) {
+                    fds.click();
+                }
+            };
+            if (text('发现通讯录好友').exists()) {
+                let telList = text('暂时不要').findOnce();
+                if (telList) {
+                    telList.click();
+                }
+                sleep(1000);
+                let no = text('取消').findOnce();
+                if (no) {
+                    no.click();
+                }
+            };
+            if (text('个人信息保护指引').exists()) {
+                let ok = text('好的').findOnce();
+                if (ok) {
+                    ok.click();
+                }
+            }
+            if (text('去商店评分').exists()) {
+                let comm = text('取消').findOnce();
+                if (comm) {
+                    comm.click();
+                }
+            }
+            if (text('进入儿童/青少年模式').exists()) {
+                let ch = text('我知道了').findOnce();
+                if (ch) {
+                    ch.click();
+                }
+            };
+            if (text('检测到更新').exists()) {
+                let o = text('以后再说').findOnce();
+                if (o) {
+                    o.click();
+                }
+            }
+            if (id("+a").text('我知道了').exists()) {
+                let o = id("+a").text('我知道了').findOnce();
+                if (o) {
+                    o.click();
+                }
+            }
+            if (text('安装“多闪APP”，不错过你的每一条私信').exists()) {
+                let ele = text('取消').findOnce();
+                if (ele) {
+                    ele.click();
+                }
+            }
+            if (text('跳过广告').exists()) {
+                let ads = text('跳过广告').findOnce();
+                if (ads) {
+                    ads.click();
+                }
+            }
+        }
+    });
+}
+//检测Kk弹窗
+function closeKkPopup() {
+    popup_thread = threads.start(function () {
+        while (true) {
+            sleep(3000);
+            // if (id('close').exists()) {
+            //     let close = id('close').findOnce();
+            //     if (close) {
+            //         close.click();
+            //     }
+            // };
+
+            if (text("恭喜你获得回归礼包").visibleToUser().findOnce()) { 
+                随机点击(id, "cr_confirm_button")
+                sleep(2000)
+            };
+            if (text("开启定位服务").visibleToUser().findOnce()) { 
+                随机点击(id, "negative")
+                sleep(2000)
+            };
+            if (text("青少年模式").visibleToUser().findOnce()) { 
+                随机点击(id, "close")
+                sleep(2000)
+            };
+            if(判断界面(text, "好友推荐")){
+                随机点击(id ,"close_btn")
+                sleep(2000)
+            }
+            if(判断界面(text, "参与活动至少可得")){
+                随机点击(id ,"content_text")
+                sleep(2000)
+            }
+            if (id("negative").text('忽略').exists()) {
+                let close = id("negative").text('忽略').findOnce();
+                if (close) {
+                    close.click();
+                }
+            };
+            if (id('close_btn').exists()) {
+                let close = id('close_btn').findOnce();
+                if (close) {
+                    close.click();
+                }
+            };
+            if (id('interest_tag_close').exists()) {
+                let close = id('interest_tag_close').findOnce();
+                if (close) {
+                    close.click();
+                }
+            };
+            if (text('进入儿童/青少年模式').exists()) {
+                let ch = text('我知道了').findOnce();
+                if (ch) {
+                    ch.click();
+                }
+            };
+            if (text('检测到更新').exists()) {
+                let o = text('以后再说').findOnce();
+                if (o) {
+                    o.click();
+                }
+            }
+            if (text('跳过广告').exists()) {
+                let ads = text('跳过广告').findOnce();
+                if (ads) {
+                    ads.click();
+                }
+            }
+        }
+    });
+}
+//检查app版本号
+function getVerName(package_name) {
+    let pkgs = context.getPackageManager().getInstalledPackages(0).toArray();
+    for (let i in pkgs) {
+        if (pkgs[i].packageName.toString() == package_name) {
+            return pkgs[i].versionName;
+        };
+    };
+};
+//检查网络
+function isNetworking() {
+    return true;
+    try {
+        if (http.get("www.baidu.com").statusCode == 200) {
+            return true;
+        } else {
+            return false;
+        };
+    } catch (e) {
+        return false;
+    };
+};
+//检测DD版本
+function checkVersionDd() {
+    if (dd_bb != myApp.dy_version) {
+        submitTask();
+        alert("DD版本不正确,点击下载");
+        app.openUrl(dd_down_url);
+        return;
+    }
+}
+//检测KK版本
+function checkVersionKk() {
+    if (kk_bb != myApp.ks_version) {
+        submitTask();
+        alert("KK版本不正确,点击下载");
+        app.openUrl(kk_down_url);
+        return;
+    }
+}
+//提交任务
+function submitTask() {
+    try {
+        http.post(myApp.baseUrl + "/api/index/submitTask?imei=" + getimei, {}, function () { });
+    } catch (error) {
+        console.error("====捕获end异常====: ", error);
+    }
+}
+//设置当前搜索窗口
+function setWin() {
+    auto.setWindowFilter((info) => {
+        try {
+            return true;
+        }
+        catch (e) {
+            return true;
+        }
+    });
+}
+//设置缓存数组
+function in_array(name) {
+    let index = in_array_list.indexOf(name);
+    if (index == -1) {
+        //添加进数组
+        in_array_list.unshift(name);
+        //数组大于20 截断到10
+        if (in_array_list.length > 20) {
+            in_array_list.splice(10);
+        }
+        return true;
+    } else {
+        showlog("<" + name + ">该视频已执行，跳过")
+        return false;
+    }
+}
+//执行点赞
+function doJobZan() {
+    common.rgClick([(myApp.width * 0.5), (myApp.height * 0.3), 20, 20]);
+    sleep(80);
+    common.rgClick([(myApp.width * 0.5), (myApp.height * 0.3), 20, 20]);
+    sleep(80);
+    common.rgClick([(myApp.width * 0.5), (myApp.height * 0.3), 20, 20]);
+    sleep(80);
+    common.rgClick([myApp.width * 0.5, myApp.height * 0.3, 20, 20]);
+    sleep(1000);
+}
+//获取KK用户code
+function getKkUserCode(url_string) {
+    if (!url_string) {
+        return '';
+    }
+    let sys_ks_code = '';
+    var url = url_string.toString();
+    for (let index = 0; index < 5; index++) {
+        if (!sys_ks_code) {
+            try {
+                var r = http.get(url);
+                if (r.statusCode == 200) {
+                    var url = String(r.url);
+                    if (url.indexOf("http") >= 0) {
+                        sys_ks_code = url.match(/shareObjectId=(.*?)\&/)[1];
+                    }
+                }
+            } catch (e) { }
+        }
+    }
+    return sys_ks_code;
+}
+

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cloud.mapper.BillMapper">
+	<select id="selectList" resultType="Bill">
+		select * from bill;
+	</select>
+	
+	<select id="selectListByStatus" parameterType="Integer" resultType="Bill">
+		select * from bill where status=#{status};
+	</select>
+	
+	<select id="selectBillDetail" parameterType="String" resultType="BillDetail">
+		select * from bill_detail where order=#{order};
+	</select>
+	
+	<insert id="insertBill">
+		insert bill into (
+			phone,
+			money,
+			balance,
+			time,
+			alipay,
+			wxpay,
+			status,
+		) values (
+			#{phone},
+			#{money},
+			#{balance},
+			#{time},
+			#{alipay},
+			#{wxpay},
+			#{status}
+		);
+	</insert>
+	
+	<update id="updateBillByStatus" parameterType="Bill">
+		update bill set 
+		status=#{status},
+		where phone=#{phone};
+	</update>
+	
+	<update id="updateBillByReason" parameterType="Bill">
+		update bill set 
+		reason=#{reason}
+		where id=#{id};
+	</update>
+	
+	<delete id="deleteBillByPhone" parameterType="String">
+		delete from bill where phone=#{phone};
+	</delete>
+</mapper>
